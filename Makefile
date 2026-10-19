@@ -4,7 +4,8 @@ SIM_SERVICE := sim
 
 .PHONY: help init pull status build up down restart ps logs \
         up-tools up-sim sim-shell px4 headless agent foxglove rviz bridge \
-        psql redis-cli topics migrate config clean
+        psql redis-cli topics mqtt-sub mqtt-detection media-api recordings \
+        migrate config clean
 
 help:
 	@echo "── 공통 ──────────────────────────────────────────"
@@ -23,6 +24,10 @@ help:
 	@echo "make psql       psql 접속"
 	@echo "make redis-cli  redis-cli 접속"
 	@echo "make topics     Kafka 토픽 목록"
+	@echo "make mqtt-sub   MQTT 토픽 구독 (neurovector/#)"
+	@echo "make mqtt-detection  테스트 감지 이벤트 발행"
+	@echo "make media-api  MediaMTX 활성 스트림 조회"
+	@echo "make recordings 녹화 파일 목록"
 	@echo "make migrate    DB 마이그레이션 재적용"
 	@echo "── 시뮬레이션 (sim 프로필) ───────────────────────"
 	@echo "make up-sim     시뮬레이션 컨테이너 기동 (+ --profile sim)"
@@ -81,6 +86,18 @@ redis-cli:
 
 topics:
 	$(COMPOSE) exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+
+mqtt-sub:
+	$(COMPOSE) exec mosquitto sh -c 'mosquitto_sub -h localhost -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" -t "neurovector/#" -v'
+
+mqtt-detection:
+	$(COMPOSE) exec mosquitto sh -c 'mosquitto_pub -h localhost -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" -t "neurovector/drones/$${DRONE_ID:-drone-001}/detections" -m "{\"label\":\"person\",\"confidence\":0.91,\"latitude\":37.5665,\"longitude\":126.9780}"'
+
+media-api:
+	@curl -fsS "http://localhost:$${MEDIA_API_PORT:-9997}/v3/paths/list" | head -c 2000; echo
+
+recordings:
+	$(COMPOSE) exec backend sh -c 'find /recordings -maxdepth 2 -type f -printf "%p %s bytes\n" 2>/dev/null || true'
 
 migrate:
 	$(COMPOSE) run --rm migrate

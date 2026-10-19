@@ -21,18 +21,27 @@ NeuroVector 전체 스택을 한 곳에서 실행하는 슈퍼프로젝트입니
                     ┌──────────────┐
    브라우저 ───────▶ │  frontend    │ :5173  (nginx, /api 프록시)
                     └──────┬───────┘
-                           │ /api
+                           │ /api + WHEP
                     ┌──────▼───────┐        ┌──────────────┐
                     │  backend     │ :8081 ─▶│  postgres    │ :5432 (pgvector)
                     │  (axum)      │ ─────▶ │  redis       │ :6379
-                    └──────┬───────┘ ─────▶ │  kafka       │ :9092
-                           │                └──────────────┘
-   이미지 ─────▶ ┌────────▼───────┐
+                    └──┬───┬───┬───┘ ─────▶ │  kafka       │ :9092
+                       │   │   │            └──────────────┘
+          MQTT 1883 ◀──┘   │   └──▶ MediaMTX :8890 SRT / :8889 WebRTC / :9997 API
+                            │
+   이미지 ─────▶ ┌──────────▼─────┐
    (또는 sim)     │  vision      │ :8082
                  └────────────────┘
 
    sim (프로필) : PX4 SITL + Gazebo + ROS 2 + RViz2 + Foxglove
 ```
+
+### 미디어 / MQTT 흐름
+
+- 드론 → Mosquitto: `neurovector/drones/{drone_id}/{detections|telemetry|status}`
+- 드론 → MediaMTX: `srt://<host>:8890?streamid=publish:{drone_id}`
+- 브라우저 ← backend WHEP 프록시 ← MediaMTX: WebRTC 재생
+- MediaMTX → `/recordings/{drone_id}/...` 녹화 후 backend API 로 목록/다운로드
 
 ## 요구 사항
 
@@ -69,6 +78,8 @@ make ps
 - 백엔드 API: http://localhost:8081/health
 - vision API 문서: http://localhost:8082/docs
 - Kafka UI: `make up-tools` → http://localhost:8080
+- MediaMTX API: http://localhost:9997/v3/paths/list
+- MQTT: `localhost:1883` (`neurovector` / `neurovector`)
 
 이미 clone 한 뒤라면:
 
@@ -89,9 +100,33 @@ make clean         # 중지 + 볼륨 삭제 (데이터 유실)
 make psql          # psql 접속
 make redis-cli     # redis-cli 접속
 make topics        # Kafka 토픽 목록
+make mqtt-sub      # MQTT neurovector/# 구독
+make mqtt-detection # 테스트 감지 이벤트 발행
+make media-api     # MediaMTX 활성 스트림 조회
+make recordings    # 녹화 파일 목록
 make migrate       # DB 마이그레이션 재적용
 make status        # 서브모듈 상태
 ```
+
+## MQTT / SRT / WebRTC
+
+```bash
+# MQTT 감지 이벤트 발행
+mosquitto_pub -h localhost -p 1883 -u neurovector -P neurovector \
+  -t neurovector/drones/drone-001/detections \
+  -m '{"label":"person","confidence":0.91,"latitude":37.5665,"longitude":126.9780}'
+
+# 드론 영상 SRT publish
+ffmpeg -re -i input.mp4 -c copy -f mpegts \
+  'srt://localhost:8890?streamid=publish:drone-001'
+
+# 활성 스트림 확인
+curl http://localhost:9997/v3/paths/list
+```
+
+브라우저에서는 프론트엔드의 **실시간 카메라** 패널이 백엔드 WHEP 프록시를 통해
+MediaMTX 스트림을 재생합니다. 녹화는 MediaMTX 가 자동으로 수행하며
+`make recordings` 또는 `/api/v1/recordings` 로 확인할 수 있습니다.
 
 ## 시뮬레이션 (sim 프로필)
 
@@ -129,7 +164,13 @@ cd .. && git add backend && git commit -m "chore: backend 최신 커밋 반영" 
 | --- | --- | --- |
 | `POSTGRES_*` | `neurovector` | DB 계정/DB명 |
 | `POSTGRES_PORT` / `REDIS_PORT` / `KAFKA_PORT` | 5432 / 6379 / 9092 | 인프라 포트 |
+| `MQTT_PORT` / `MQTT_USERNAME` / `MQTT_PASSWORD` | 1883 / `neurovector` / `neurovector` | Mosquitto 설정 |
+| `MEDIA_SRT_PORT` / `MEDIA_WEBRTC_PORT` / `MEDIA_API_PORT` | 8890 / 8889 / 9997 | MediaMTX 포트 |
+| `MEDIA_SRT_PUBLIC_HOST` | `localhost` | 드론이 사용할 SRT 공인 주소 |
+| `MEDIA_WEBRTC_ADDITIONAL_HOSTS` | `localhost` | 브라우저가 접근할 WebRTC 호스트 |
 | `BACKEND_PORT` / `VISION_PORT` / `FRONTEND_PORT` | 8081 / 8082 / 5173 | 앱 포트 |
+| `MAX_ALTITUDE_M` / `ROUTE_MAX_DISTANCE_M` | 120 / 20000 | 경로 검증 기준 |
+| `RISK_LOOKBACK_DAYS` / `RISK_CORRIDOR_M` | 90 / 150 | 위험 예측 기준 |
 | `VISION_WITH_MODEL` | `0` | `1` 이면 YOLO/OpenCV 포함해 vision 빌드 |
 | `SIM_BASE_IMAGE`, `PX4_SIM_MODEL`, `HEADLESS` | — | sim 프로필용 |
 
