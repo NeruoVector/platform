@@ -1,7 +1,8 @@
 .env
 
-# 로컬 데이터 / 로그
+# 로컬 데이터 / 로그 / 녹화
 /infra/data/
+/recordings/
 *.log
 
 # sim 실행 시 생성되는 ulog

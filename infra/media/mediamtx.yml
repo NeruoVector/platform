@@ -1,0 +1,58 @@
+###############################################
+# NeuroVector MediaMTX 설정
+# SRT 수신 + WebRTC(WHEP) 송출 + 녹화
+###############################################
+logLevel: info
+logDestinations: [stdout]
+
+# 제어 API (백엔드가 활성 스트림/녹화 정보를 조회)
+api: true
+apiAddress: :9997
+apiAllowOrigins: ["*"]
+
+# RTSP/RTMP/HLS/MoQ 는 사용하지 않는다.
+rtsp: false
+rtmp: false
+hls: false
+moq: false
+
+# 브라우저 WebRTC 재생
+webrtc: true
+webrtcAddress: :8889
+webrtcAllowOrigins: ["*"]
+webrtcLocalUDPAddress: :8189
+webrtcIPsFromInterfaces: true
+webrtcAdditionalHosts: [localhost]
+webrtcICEServers2: []
+
+# 드론이 SRT 로 publish
+srt: true
+srtAddress: :8890
+
+# 로컬 개발 환경에서 백엔드/브라우저가 익명으로 접근할 수 있게 한다.
+# 운영 환경에서는 반드시 사용자/권한을 제한하세요.
+authMethod: internal
+authInternalUsers:
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: publish
+      - action: read
+      - action: playback
+      - action: api
+      - action: metrics
+
+pathDefaults:
+  source: publisher
+  # 드론이 publish 하는 모든 경로를 자동 녹화
+  record: true
+  recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
+  recordFormat: fmp4
+  recordPartDuration: 1s
+  recordSegmentDuration: 10m
+  recordDeleteAfter: 7d
+  overridePublisher: true
+
+paths:
+  all_others:
