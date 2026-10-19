@@ -11,6 +11,7 @@ NeuroVector 의 로컬 개발 인프라(Docker Compose) 레포입니다.
 | [`backend`](https://github.com/NeruoVector/backend) | Rust + axum | API 서버 |
 | [`vision`](https://github.com/NeruoVector/vision) | Python + uv + YOLO | 장애물 감지 |
 | [`drone`](https://github.com/NeruoVector/drone) | C/C++ + Conan 2 | 드론 하드웨어 HAL |
+| [`sim`](https://github.com/NeruoVector/sim) | PX4 SITL + Gazebo + ROS 2 | 드론 시뮬레이션 (RViz2 · Foxglove) |
 
 ## 인프라
 
