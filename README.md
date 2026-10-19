@@ -1,4 +1,18 @@
-# NeuroVector 인프라 (로컬 개발용)
+# NeuroVector Platform
+
+NeuroVector 의 로컬 개발 인프라(Docker Compose) 레포입니다.
+
+## 레포 구성
+
+| 레포 | 스택 | 역할 |
+| --- | --- | --- |
+| [`platform`](https://github.com/NeruoVector/platform) | Docker Compose | PostgreSQL · Redis · Kafka 인프라 |
+| [`frontend`](https://github.com/NeruoVector/frontend) | React + TS + Vite | 감지 결과 대시보드 |
+| [`backend`](https://github.com/NeruoVector/backend) | Rust + axum | API 서버 |
+| [`vision`](https://github.com/NeruoVector/vision) | Python + uv + YOLO | 장애물 감지 |
+| [`drone`](https://github.com/NeruoVector/drone) | C/C++ + Conan 2 | 드론 하드웨어 HAL |
+
+## 인프라
 
 Docker Compose 기반 로컬 스택입니다.
 
