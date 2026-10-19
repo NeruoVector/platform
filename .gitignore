@@ -1,0 +1,8 @@
+.env
+
+# Rust
+/backend/target/
+
+# 로컬 데이터
+/infra/data/
+*.log
