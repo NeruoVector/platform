@@ -1,8 +1,8 @@
 .env
 
-# Rust
-/backend/target/
-
-# 로컬 데이터
+# 로컬 데이터 / 로그
 /infra/data/
 *.log
+
+# sim 실행 시 생성되는 ulog
+/sim/logs/*.ulg
