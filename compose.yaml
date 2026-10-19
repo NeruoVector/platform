@@ -1,9 +1,16 @@
 name: neurovector
 
+# sim 레포(PX4 SITL + Gazebo + ROS 2)는 서브모듈의 compose 를 그대로 가져옵니다.
+# sim 서비스는 `sim` 프로필이라 기본 `docker compose up` 에서는 뜨지 않습니다.
+# 서브모듈이 초기화되지 않았다면 먼저 `make init` 을 실행하세요.
+include:
+  - path: sim/compose.yaml
+
 services:
+  # ---------------------------------------------------------------- 인프라
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: neurovector-postgres
+    container_name: nv-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-neurovector}
@@ -24,8 +31,10 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    container_name: neurovector-redis
+    container_name: nv-redis
     restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-neurovector}
     command:
       - redis-server
       - --appendonly
@@ -42,12 +51,10 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-neurovector}
 
   kafka:
     image: apache/kafka:3.9.1
-    container_name: neurovector-kafka
+    container_name: nv-kafka
     restart: unless-stopped
     environment:
       CLUSTER_ID: ${KAFKA_CLUSTER_ID:-MkU3OEVBNTcwNTJENDM2Qk}
@@ -78,7 +85,7 @@ services:
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
-    container_name: neurovector-kafka-ui
+    container_name: nv-kafka-ui
     restart: unless-stopped
     profiles: ["tools"]
     depends_on:
@@ -90,6 +97,94 @@ services:
       DYNAMIC_CONFIG_ENABLED: "true"
     ports:
       - "${KAFKA_UI_PORT:-8080}:8080"
+
+  # --------------------------------------------------- DB 마이그레이션 (1회)
+  migrate:
+    image: pgvector/pgvector:pg16
+    container_name: nv-migrate
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-neurovector}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-neurovector}
+      PGDATABASE: ${POSTGRES_DB:-neurovector}
+    volumes:
+      - ./backend/migrations:/migrations:ro
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        for f in /migrations/*.sql; do
+          echo "== applying $f"
+          psql -v ON_ERROR_STOP=1 -f "$$f"
+        done
+
+  # ------------------------------------------------------------- 애플리케이션
+  backend:
+    build:
+      context: ./backend
+    image: neurovector-backend:${IMAGE_TAG:-local}
+    container_name: nv-backend
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    environment:
+      LISTEN_ADDR: 0.0.0.0:8081
+      PUBLIC_BASE_URL: http://localhost:${BACKEND_PORT:-8081}
+      DATABASE_URL: postgres://${POSTGRES_USER:-neurovector}:${POSTGRES_PASSWORD:-neurovector}@postgres:5432/${POSTGRES_DB:-neurovector}
+      DATABASE_MAX_CONNECTIONS: ${DATABASE_MAX_CONNECTIONS:-10}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-neurovector}@redis:6379/0
+      # compose 네트워크에서는 INTERNAL 리스너(29092)를 사용해야 합니다.
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_TOPIC_EVENTS: ${KAFKA_TOPIC_EVENTS:-neurovector.events}
+      RUST_LOG: ${RUST_LOG:-info,tower_http=debug}
+    ports:
+      - "${BACKEND_PORT:-8081}:8081"
+
+  vision:
+    build:
+      context: ./vision
+      args:
+        # 1 로 빌드하면 YOLO/OpenCV 포함 (이미지가 커집니다)
+        WITH_VISION: ${VISION_WITH_MODEL:-0}
+    image: neurovector-vision:${IMAGE_TAG:-local}
+    container_name: nv-vision
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NEUROVECTOR_HOST: 0.0.0.0
+      NEUROVECTOR_PORT: "8082"
+      NEUROVECTOR_BACKEND_BASE_URL: http://backend:8081
+      NEUROVECTOR_BACKEND_TIMEOUT_SECONDS: ${VISION_BACKEND_TIMEOUT:-5.0}
+      NEUROVECTOR_MODEL_PATH: ${VISION_MODEL_PATH:-yolov8n.pt}
+      NEUROVECTOR_CONFIDENCE_THRESHOLD: ${VISION_CONFIDENCE_THRESHOLD:-0.35}
+      NEUROVECTOR_DRONE_ID: ${DRONE_ID:-drone-001}
+    ports:
+      - "${VISION_PORT:-8082}:8082"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # 빈 값 → 같은 오리진(/api) 요청을 nginx 가 backend 로 프록시
+        VITE_API_BASE_URL: ""
+    image: neurovector-frontend:${IMAGE_TAG:-local}
+    container_name: nv-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
 
 volumes:
   pgdata:

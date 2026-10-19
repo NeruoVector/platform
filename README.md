@@ -1,34 +1,45 @@
 # NeuroVector Platform
 
-NeuroVector 의 로컬 개발 인프라(Docker Compose) 레포입니다.
+NeuroVector 전체 스택을 한 곳에서 실행하는 슈퍼프로젝트입니다.
+각 서비스는 **git submodule** 로 들어와 있고, 루트 `compose.yaml` 이 전부 묶어서 띄웁니다.
 
-## 레포 구성
+## 레포 구성 (서브모듈)
 
-| 레포 | 스택 | 역할 |
-| --- | --- | --- |
-| [`platform`](https://github.com/NeruoVector/platform) | Docker Compose | PostgreSQL · Redis · Kafka 인프라 |
-| [`frontend`](https://github.com/NeruoVector/frontend) | React + TS + Vite | 감지 결과 대시보드 |
-| [`backend`](https://github.com/NeruoVector/backend) | Rust + axum | API 서버 |
-| [`vision`](https://github.com/NeruoVector/vision) | Python + uv + YOLO | 장애물 감지 |
-| [`drone`](https://github.com/NeruoVector/drone) | C/C++ + Conan 2 | 드론 하드웨어 HAL |
-| [`sim`](https://github.com/NeruoVector/sim) | PX4 SITL + Gazebo + ROS 2 | 드론 시뮬레이션 (RViz2 · Foxglove) |
-
-## 인프라
-
-Docker Compose 기반 로컬 스택입니다.
-
-| 서비스 | 이미지 | 포트 | 용도 |
+| 경로 | 레포 | 스택 | 포트 |
 | --- | --- | --- | --- |
-| postgres | `pgvector/pgvector:pg16` | 5432 | 메인 DB + 벡터 검색(pgvector) |
-| redis | `redis:7.4-alpine` | 6379 | 캐시 / 세션 (AOF 영속화) |
-| kafka | `apache/kafka:3.9.1` | 9092 | 이벤트 스트림 (KRaft, 단일 노드) |
-| kafka-ui | `provectuslabs/kafka-ui` | 8080 | 토픽 확인용 (선택, `tools` 프로필) |
+| `frontend/` | [frontend](https://github.com/NeruoVector/frontend) | React 19 + TS + Vite → nginx | 5173 |
+| `backend/` | [backend](https://github.com/NeruoVector/backend) | Rust + axum | 8081 |
+| `vision/` | [vision](https://github.com/NeruoVector/vision) | Python 3.13 + uv + YOLO/FastAPI | 8082 |
+| `drone/` | [drone](https://github.com/NeruoVector/drone) | C/C++ + Conan 2 (HAL) | — |
+| `sim/` | [sim](https://github.com/NeruoVector/sim) | PX4 SITL + Gazebo Harmonic + ROS 2 Jazzy | 8765 등 |
 
-## 1. 사전 준비
+> `drone/` 과 `sim/` 은 서브모듈로만 포함됩니다. `drone` 은 빌드 산출물을 배포하는 게 아니라
+> Conan 패키지/펌웨어 쪽이라 compose 서비스가 아니고, `sim` 은 X11·host 네트워킹이 필요해
+> 별도 프로필로 분리했습니다.
 
-이 저장소가 있는 머신에는 현재 Docker가 설치되어 있지 않습니다. 아래 중 하나로 설치하세요.
+```
+                    ┌──────────────┐
+   브라우저 ───────▶ │  frontend    │ :5173  (nginx, /api 프록시)
+                    └──────┬───────┘
+                           │ /api
+                    ┌──────▼───────┐        ┌──────────────┐
+                    │  backend     │ :8081 ─▶│  postgres    │ :5432 (pgvector)
+                    │  (axum)      │ ─────▶ │  redis       │ :6379
+                    └──────┬───────┘ ─────▶ │  kafka       │ :9092
+                           │                └──────────────┘
+   이미지 ─────▶ ┌────────▼───────┐
+   (또는 sim)     │  vision      │ :8082
+                 └────────────────┘
 
-**Docker Engine (Debian/Ubuntu)**
+   sim (프로필) : PX4 SITL + Gazebo + ROS 2 + RViz2 + Foxglove
+```
+
+## 요구 사항
+
+- Docker Engine + Compose **v2.20+** (`include` 문법 사용)
+- Git (서브모듈)
+
+Docker 가 없다면:
 
 ```bash
 sudo apt-get update
@@ -36,80 +47,125 @@ sudo apt-get install -y ca-certificates curl gnupg
 sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
   | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo usermod -aG docker "$USER"   # 재로그인 필요
 ```
 
-설치 후 확인:
+## 시작하기
 
 ```bash
-docker --version
-docker compose version
+git clone --recurse-submodules https://github.com/NeruoVector/platform.git
+cd platform
+make init        # .env 생성 + 서브모듈 초기화
+make up          # postgres/redis/kafka/migrate/backend/vision/frontend 기동
+make ps
 ```
 
-## 2. 실행
+- 프론트엔드: http://localhost:5173
+- 백엔드 API: http://localhost:8081/health
+- vision API 문서: http://localhost:8082/docs
+- Kafka UI: `make up-tools` → http://localhost:8080
+
+이미 clone 한 뒤라면:
 
 ```bash
-cp .env.example .env     # 값은 필요에 따라 수정
-make up                  # docker compose up -d
-make ps                  # 상태 확인 (healthy 될 때까지)
+make pull        # git submodule update --init --recursive
 ```
 
-Kafka UI까지 띄우려면:
+## 자주 쓰는 명령
 
 ```bash
-make ui                  # http://localhost:8080
+make up            # 전체 기동 (이미지 빌드 포함)
+make build         # 이미지만 빌드
+make ps / logs     # 상태 / 로그
+make config        # compose 설정 검증
+make down          # 중지
+make clean         # 중지 + 볼륨 삭제 (데이터 유실)
+
+make psql          # psql 접속
+make redis-cli     # redis-cli 접속
+make topics        # Kafka 토픽 목록
+make migrate       # DB 마이그레이션 재적용
+make status        # 서브모듈 상태
 ```
 
-## 3. 접속 정보
+## 시뮬레이션 (sim 프로필)
 
-```
-DATABASE_URL=postgres://neurovector:neurovector@localhost:5432/neurovector
-REDIS_URL=redis://:neurovector@localhost:6379/0
-KAFKA_BROKERS=localhost:9092
-```
-
-- Kafka는 컨테이너 내부에서 접근할 때 `kafka:29092` 를 사용합니다.
-- `.env` 의 값을 바꾸면 아래 접속 정보도 함께 바뀝니다.
-
-## 4. 자주 쓰는 명령
+`sim` 서비스는 `sim` 프로필이라 `make up` 으로는 뜨지 않습니다.
 
 ```bash
-make psql       # psql 접속
-make redis-cli  # redis-cli 접속
-make topics     # Kafka 토픽 목록
-make logs       # 전체 로그 tail
-make down       # 중지
-make clean      # 중지 + 볼륨 삭제 (데이터 유실)
+make up-sim        # 시뮬레이션 컨테이너 기동
+make agent         # (터미널 2) Micro XRCE-DDS Agent
+make px4           # (터미널 3) PX4 SITL + Gazebo
+make foxglove      # (터미널 4) ws://localhost:8765
+make rviz          # (터미널 5) RViz2
 ```
 
-## 5. 초기 DB 설정
+GUI(X11)가 필요하므로 호스트에서 먼저 `xhost +local:root` 를 실행하세요.
+자세한 내용은 [`sim` 레포 README](https://github.com/NeruoVector/sim) 참고.
 
-`infra/postgres/init/01-extensions.sql` 이 **볼륨이 비어있는 최초 기동 시 1회** 실행됩니다.
+## 서브모듈 워크플로
 
-- `vector` (pgvector)
-- `pg_trgm`
-- `uuid-ossp`
-- `neurovector` 스키마
+```bash
+# 서브모듈에서 작업 후
+cd backend && git checkout main && git pull
+# ... 커밋/푸시 ...
+cd .. && git add backend && git commit -m "chore: backend 최신 커밋 반영" && git push
+```
 
-볼륨이 이미 존재해서 스크립트가 실행되지 않았다면 수동으로 적용하세요.
+- `make status` 로 각 서브모듈이 어느 커밋에 고정돼 있는지 확인합니다.
+- 서브모듈을 최신 main 으로 당길 때: `git submodule update --remote --merge <path>`
+- 서브모듈 안에서 작업할 때는 브랜치가 detached HEAD 가 아닌지 확인하세요.
+
+## 환경 변수
+
+`.env.example` → `.env` 로 복사해서 사용합니다. 주요 값:
+
+| 변수 | 기본값 | 설명 |
+| --- | --- | --- |
+| `POSTGRES_*` | `neurovector` | DB 계정/DB명 |
+| `POSTGRES_PORT` / `REDIS_PORT` / `KAFKA_PORT` | 5432 / 6379 / 9092 | 인프라 포트 |
+| `BACKEND_PORT` / `VISION_PORT` / `FRONTEND_PORT` | 8081 / 8082 / 5173 | 앱 포트 |
+| `VISION_WITH_MODEL` | `0` | `1` 이면 YOLO/OpenCV 포함해 vision 빌드 |
+| `SIM_BASE_IMAGE`, `PX4_SIM_MODEL`, `HEADLESS` | — | sim 프로필용 |
+
+## DB 초기화 / 마이그레이션
+
+1. `infra/postgres/init/01-extensions.sql` — 볼륨이 비었을 때 **최초 1회** 실행
+   (`vector`, `pg_trgm`, `uuid-ossp` 확장 + `neurovector` 스키마)
+2. `migrate` 서비스 — 매 기동 시 `backend/migrations/*.sql` 을 순서대로 적용
+   (스크립트가 `IF NOT EXISTS` 라 반복 실행해도 안전)
+
+볼륨이 이미 있는데 확장이 없다면:
 
 ```bash
 docker compose exec -T postgres psql -U neurovector -d neurovector \
   < infra/postgres/init/01-extensions.sql
+make migrate
 ```
 
-확인:
+## 문제 해결
 
-```bash
-docker compose exec postgres psql -U neurovector -d neurovector -c '\dx'
-```
+**`include` 때문에 compose 가 실패한다**
+서브모듈이 비어 있어 `sim/compose.yaml` 이 없을 때 발생합니다. `make pull` 실행.
 
-## 6. 참고
+**`docker compose` 에서 `include` 를 모른다**
+Compose v2.20 미만입니다. `docker compose version` 확인 후 업그레이드하세요.
 
-- 포트 충돌 시 `.env` 에서 `POSTGRES_PORT`, `REDIS_PORT`, `KAFKA_PORT`, `KAFKA_UI_PORT` 를 변경하세요.
-- `kafka` 의 `KAFKA_CLUSTER_ID` 는 KRaft 클러스터 식별자입니다. 볼륨을 유지하는 한 바꾸지 마세요.
-- 운영 환경에서는 기본 비밀번호(`neurovector`)를 반드시 교체하고, 포트를 외부에 노출하지 마세요.
+**backend 가 Kafka 에 붙지 못한다**
+컨테이너 네트워크에서는 광고된 INTERNAL 리스너를 써야 하므로 `KAFKA_BROKERS=kafka:29092` 입니다.
+호스트에서 직접 실행할 때만 `localhost:9092` 를 사용하세요.
+
+**포트 충돌**
+`.env` 에서 해당 포트를 바꾸세요.
+
+**운영에서는**
+기본 비밀번호(`neurovector`)를 교체하고, 인프라 포트를 외부에 노출하지 마세요.
+
+## 라이선스
+
+각 서브모듈은 자체 LICENSE 를 따릅니다 (MIT).

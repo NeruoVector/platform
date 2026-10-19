@@ -1,0 +1,15 @@
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/NeruoVector/frontend.git
+[submodule "backend"]
+	path = backend
+	url = https://github.com/NeruoVector/backend.git
+[submodule "vision"]
+	path = vision
+	url = https://github.com/NeruoVector/vision.git
+[submodule "drone"]
+	path = drone
+	url = https://github.com/NeruoVector/drone.git
+[submodule "sim"]
+	path = sim
+	url = https://github.com/NeruoVector/sim.git
