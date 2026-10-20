@@ -76,7 +76,7 @@ make up          # postgres/redis/kafka/migrate/backend/vision/frontend 기동
 make ps
 ```
 
-- 프론트엔드: http://localhost:5173
+- 프론트엔드: http://localhost:5173 (`#dashboard` 모니터링, `#store` 스토어, `#admin` 관리자)
 - 백엔드 API: http://localhost:8081/health
 - 백엔드 Swagger UI: http://localhost:8081/swagger-ui
 - vision API 문서: http://localhost:8082/docs
