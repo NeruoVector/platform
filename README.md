@@ -42,6 +42,8 @@ NeuroVector 전체 스택을 한 곳에서 실행하는 슈퍼프로젝트입니
 - 드론 → MediaMTX: `srt://<host>:8890?streamid=publish:{drone_id}`
 - 브라우저 ← backend WHEP 프록시 ← MediaMTX: WebRTC 재생
 - MediaMTX → `/recordings/{drone_id}/...` 녹화 후 backend API 로 목록/다운로드
+- 주문 API → Kafka `neurovector.orders` → backend order-worker → PostgreSQL
+- backend 조회 API ↔ Redis cache-aside (`X-Cache: HIT|MISS`)
 
 ## 요구 사항
 
@@ -76,6 +78,7 @@ make ps
 
 - 프론트엔드: http://localhost:5173
 - 백엔드 API: http://localhost:8081/health
+- 백엔드 Swagger UI: http://localhost:8081/swagger-ui
 - vision API 문서: http://localhost:8082/docs
 - Kafka UI: `make up-tools` → http://localhost:8080
 - MediaMTX API: http://localhost:9997/v3/paths/list
