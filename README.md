@@ -77,6 +77,7 @@ make ps
 ```
 
 - 프론트엔드: http://localhost:5173 (`#dashboard` 모니터링, `#store` 스토어, `#admin` 관리자)
+- 관리자 로그인: `#admin` → 아이디 `admin` / 비밀번호 `neurovector-admin` (`.env` 에서 변경)
 - 백엔드 API: http://localhost:8081/health
 - 백엔드 Swagger UI: http://localhost:8081/swagger-ui
 - vision API 문서: http://localhost:8082/docs
@@ -172,6 +173,9 @@ cd .. && git add backend && git commit -m "chore: backend 최신 커밋 반영" 
 | `MEDIA_SRT_PUBLIC_HOST` | `localhost` | 드론이 사용할 SRT 공인 주소 |
 | `MEDIA_WEBRTC_ADDITIONAL_HOSTS` | `localhost` | 브라우저가 접근할 WebRTC 호스트 |
 | `BACKEND_PORT` / `VISION_PORT` / `FRONTEND_PORT` | 8081 / 8082 / 5173 | 앱 포트 |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | `admin` / `neurovector-admin` | 관리자 세션 계정 |
+| `ADMIN_SESSION_TTL_SECONDS` | `86400` | 관리자 세션 유지 시간 |
+| `ADMIN_COOKIE_SECURE` | `false` | HTTPS 배포 시 `true` |
 | `MAX_ALTITUDE_M` / `ROUTE_MAX_DISTANCE_M` | 120 / 20000 | 경로 검증 기준 |
 | `RISK_LOOKBACK_DAYS` / `RISK_CORRIDOR_M` | 90 / 150 | 위험 예측 기준 |
 | `VISION_WITH_MODEL` | `0` | `1` 이면 YOLO/OpenCV 포함해 vision 빌드 |
@@ -208,7 +212,8 @@ Compose v2.20 미만입니다. `docker compose version` 확인 후 업그레이�
 `.env` 에서 해당 포트를 바꾸세요.
 
 **운영에서는**
-기본 비밀번호(`neurovector`)를 교체하고, 인프라 포트를 외부에 노출하지 마세요.
+기본 비밀번호(`neurovector`, `neurovector-admin`)를 교체하고, `ADMIN_COOKIE_SECURE=true`
+를 설정한 뒤 인프라 포트를 외부에 노출하지 마세요.
 
 ## 라이선스
 
