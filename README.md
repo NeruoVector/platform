@@ -38,6 +38,7 @@ NeuroVector 전체 스택을 한 곳에서 실행하는 슈퍼프로젝트입니
 
 ### 미디어 / MQTT 흐름
 
+- vision → backend: YOLO 감지 + 단안 거리(`distance_m`) → `POST /api/v1/detections`
 - 드론 → Mosquitto: `neurovector/drones/{drone_id}/{detections|telemetry|status}`
 - 드론 → MediaMTX: `srt://<host>:8890?streamid=publish:{drone_id}`
 - 브라우저 ← backend WHEP 프록시 ← MediaMTX: WebRTC 재생
@@ -118,7 +119,7 @@ make status        # 서브모듈 상태
 # MQTT 감지 이벤트 발행
 mosquitto_pub -h localhost -p 1883 -u neurovector -P neurovector \
   -t neurovector/drones/drone-001/detections \
-  -m '{"label":"person","confidence":0.91,"latitude":37.5665,"longitude":126.9780}'
+  -m '{"label":"person","confidence":0.91,"latitude":37.5665,"longitude":126.9780,"distance_m":12.4}'
 
 # 드론 영상 SRT publish
 ffmpeg -re -i input.mp4 -c copy -f mpegts \

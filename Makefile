@@ -91,7 +91,7 @@ mqtt-sub:
 	$(COMPOSE) exec mosquitto sh -c 'mosquitto_sub -h localhost -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" -t "neurovector/#" -v'
 
 mqtt-detection:
-	$(COMPOSE) exec mosquitto sh -c 'mosquitto_pub -h localhost -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" -t "neurovector/drones/$${DRONE_ID:-drone-001}/detections" -m "{\"label\":\"person\",\"confidence\":0.91,\"latitude\":37.5665,\"longitude\":126.9780}"'
+	$(COMPOSE) exec mosquitto sh -c 'mosquitto_pub -h localhost -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" -t "neurovector/drones/$${DRONE_ID:-drone-001}/detections" -m "{\"label\":\"person\",\"confidence\":0.91,\"latitude\":37.5665,\"longitude\":126.9780,\"distance_m\":12.4}"'
 
 media-api:
 	@curl -fsS "http://localhost:$${MEDIA_API_PORT:-9997}/v3/paths/list" | head -c 2000; echo
