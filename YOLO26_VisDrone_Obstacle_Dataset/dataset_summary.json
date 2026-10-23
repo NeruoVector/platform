@@ -1,0 +1,50 @@
+{
+  "source": "VisDrone2019-DET",
+  "source_url": "https://github.com/VisDrone/VisDrone-Dataset",
+  "format": "Ultralytics YOLO detect",
+  "image_counts": {
+    "train": 6471,
+    "val": 548,
+    "test": 1610
+  },
+  "class_box_counts": {
+    "pedestrian": 109187,
+    "people": 38560,
+    "bicycle": 13069,
+    "car": 187004,
+    "van": 32702,
+    "truck": 16284,
+    "tricycle": 6387,
+    "awning-tricycle": 4377,
+    "bus": 9117,
+    "motor": 40378
+  },
+  "classes": [
+    "pedestrian",
+    "people",
+    "bicycle",
+    "car",
+    "van",
+    "truck",
+    "tricycle",
+    "awning-tricycle",
+    "bus",
+    "motor"
+  ],
+  "excluded_annotations": [
+    "ignored regions (category 0 / score 0)",
+    "others (category 11)"
+  ],
+  "class_image_counts": {
+    "pedestrian": 7083,
+    "people": 5226,
+    "bicycle": 3496,
+    "car": 8178,
+    "van": 6537,
+    "truck": 4567,
+    "tricycle": 2270,
+    "awning-tricycle": 1604,
+    "bus": 2992,
+    "motor": 5516
+  }
+}

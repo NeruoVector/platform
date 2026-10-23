@@ -1,0 +1,18 @@
+# Single NVIDIA GPU. Override these with train.py options or edit this file.
+epochs: 100
+imgsz: 1280
+batch: 4
+workers: 4
+patience: 30
+optimizer: auto
+pretrained: true
+amp: true
+cache: false
+save: true
+save_period: 10
+close_mosaic: 10
+seed: 0
+deterministic: true
+# VisDrone images can contain more than the default 300 detections.
+max_det: 1000
+plots: true
