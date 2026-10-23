@@ -7,3 +7,6 @@
 
 # sim 실행 시 생성되는 ulog
 /sim/logs/*.ulg
+
+# Separate repository: NeruoVector/yolo26-dataset
+/YOLO26_VisDrone_Obstacle_Dataset/
