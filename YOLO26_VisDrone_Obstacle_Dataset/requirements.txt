@@ -1,0 +1,2 @@
+# Keep training aligned with NeuroVector's verified vision environment.
+ultralytics==8.4.182

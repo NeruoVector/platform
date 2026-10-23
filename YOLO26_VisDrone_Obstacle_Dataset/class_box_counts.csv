@@ -1,0 +1,11 @@
+﻿class_id,class_name,all_splits_boxes
+0,pedestrian,109187
+1,people,38560
+2,bicycle,13069
+3,car,187004
+4,van,32702
+5,truck,16284
+6,tricycle,6387
+7,awning-tricycle,4377
+8,bus,9117
+9,motor,40378

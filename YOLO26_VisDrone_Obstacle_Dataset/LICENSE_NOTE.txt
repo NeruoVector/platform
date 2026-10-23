@@ -1,0 +1,14 @@
+VisDrone2019-DET source and attribution note
+
+Source: https://github.com/VisDrone/VisDrone-Dataset
+Dataset creators: AISKYEYE team, Lab of Machine Learning and Data Mining,
+Tianjin University.
+Citation: Zhu et al., “Detection and Tracking Meet Drones Challenge,”
+IEEE Transactions on Pattern Analysis and Machine Intelligence, 2022.
+DOI: https://doi.org/10.1109/TPAMI.2021.3119563
+
+The dataset is provided for academic/non-commercial research use according to
+the dataset provider's data-use notice. Some public dataset mirrors identify
+the terms as CC BY-NC-SA 3.0. This package does not grant rights to the source
+images. Keep attribution, preserve the applicable source terms, and contact
+the dataset owners before commercial use or redistribution outside those terms.
