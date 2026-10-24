@@ -135,6 +135,11 @@ MediaMTX 스트림을 재생합니다. 녹화는 MediaMTX 가 자동으로 수�
 
 ## 시뮬레이션 (sim 프로필)
 
+창문 행·GPS 기반 층수/창문 선택, 돌풍·외부 물리 교란 감지와 Wi-Fi CSI 추정값을
+합친 드론 판단 계층은 [드론 통합 항법 안내](drone/docs/delivery-navigation.md)에 있습니다.
+`cmake -S drone -B drone/build && cmake --build drone/build && drone/build/nv_delivery_demo`로
+합성 통합 시나리오를 실행합니다. 실제 센서 연결·창문 모델 학습·자동 비행은 별도 필요합니다.
+
 `sim` 서비스는 `sim` 프로필이라 `make up` 으로는 뜨지 않습니다.
 
 ```bash
