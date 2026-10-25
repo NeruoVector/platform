@@ -1,0 +1,56 @@
+name: Deploy verified release
+on:
+  workflow_run:
+    workflows: [Platform CI and image delivery]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Full platform commit SHA whose CI and three GHCR image builds passed
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  packages: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: [self-hosted, linux, neurovector-production]
+    environment: production
+    env:
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha || inputs.release_sha }}
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_ENV_FILE: ${{ vars.RELEASE_ENV_FILE }}
+    steps:
+      - name: Isolate registry credentials
+        run: echo "DOCKER_CONFIG=$RUNNER_TEMP/neurovector-docker" >> "$GITHUB_ENV"
+      - name: Validate release and host configuration
+        shell: bash
+        run: |
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test -f "$RELEASE_ENV_FILE"
+          gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci-cd.yml/runs?head_sha=$RELEASE_SHA&status=success" --jq '.workflow_runs | any(.event == "push" and .head_branch == "main")' | grep -qx true
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+          submodules: recursive
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull images and apply release with migrations
+        shell: bash
+        run: |
+          export RELEASE_IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
+          export COMPOSE_PROJECT_NAME=neurovector
+          docker compose --env-file "$RELEASE_ENV_FILE" -f compose.yaml -f compose.release.yaml config -q
+          docker compose --env-file "$RELEASE_ENV_FILE" -f compose.yaml -f compose.release.yaml pull backend frontend vision
+          docker compose --env-file "$RELEASE_ENV_FILE" -f compose.yaml -f compose.release.yaml up -d --no-build postgres redis kafka mosquitto mediamtx
+          docker compose --env-file "$RELEASE_ENV_FILE" -f compose.yaml -f compose.release.yaml run --rm migrate
+          docker compose --env-file "$RELEASE_ENV_FILE" -f compose.yaml -f compose.release.yaml up -d --no-build --wait backend frontend vision

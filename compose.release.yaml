@@ -1,0 +1,7 @@
+services:
+  backend:
+    image: ${RELEASE_IMAGE_PREFIX:?set GHCR prefix}-backend:${RELEASE_SHA:?set release commit}
+  frontend:
+    image: ${RELEASE_IMAGE_PREFIX:?set GHCR prefix}-frontend:${RELEASE_SHA:?set release commit}
+  vision:
+    image: ${RELEASE_IMAGE_PREFIX:?set GHCR prefix}-vision:${RELEASE_SHA:?set release commit}

@@ -1,0 +1,130 @@
+name: Platform CI and image delivery
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci && npm run lint && npm run build
+        working-directory: frontend
+
+  backend:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: neurovector
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: neurovector
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd 'pg_isready -U neurovector' --health-interval 5s
+          --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4-alpine
+        ports: ['6379:6379']
+        options: --health-cmd 'redis-cli ping' --health-interval 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://neurovector:ci-only@127.0.0.1:5432/neurovector
+      TEST_REDIS_URL: redis://127.0.0.1:6379/0
+      PGPASSWORD: ci-only
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+      - run: rustup update stable && rustup default stable
+      - name: Initialize isolated PostgreSQL schema
+        run: |
+          psql -h 127.0.0.1 -U neurovector -d neurovector -v ON_ERROR_STOP=1 -f infra/postgres/init/01-extensions.sql
+          for migration in backend/migrations/*.sql; do
+            psql -h 127.0.0.1 -U neurovector -d neurovector -v ON_ERROR_STOP=1 -f "$migration"
+          done
+      - run: cargo fmt --all -- --check && cargo clippy --locked --all-targets -- -D warnings && cargo test --locked -- --test-threads=1
+        working-directory: backend
+
+  vision:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - run: python -m pip install uv
+      - run: uv sync --frozen && uv run ruff check . && uv run pytest
+        working-directory: vision
+
+  drone:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+      - run: cmake -S drone -B /tmp/nv-drone -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS='-Wall -Wextra -Wpedantic -Werror'
+      - run: cmake --build /tmp/nv-drone -j2 && ctest --test-dir /tmp/nv-drone --output-on-failure
+      - run: python3 sim/scripts/generate-school-world.py --check
+
+  ros-camera:
+    runs-on: ubuntu-24.04
+    container: ros:jazzy-ros-base
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+      - run: apt-get update && apt-get install -y --no-install-recommends python3-pytest ros-jazzy-sensor-msgs ffmpeg
+      - shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          export PYTHONPATH="$GITHUB_WORKSPACE/sim/ros2_ws/src/nv_telemetry:${PYTHONPATH:-}"
+          python3 -m pytest sim/ros2_ws/src/nv_telemetry/test/test_camera_stream.py -q
+
+  deliver-images:
+    needs: [frontend, backend, vision, drone, ros-camera]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [backend, frontend, vision]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: image
+        run: echo "prefix=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ./${{ matrix.service }}
+          push: true
+          tags: ${{ steps.image.outputs.prefix }}-${{ matrix.service }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
