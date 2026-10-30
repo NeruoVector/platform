@@ -219,3 +219,13 @@ Compose v2.20 미만입니다. `docker compose version` 확인 후 업그레이�
 ## 라이선스
 
 각 서브모듈은 자체 LICENSE 를 따릅니다 (MIT).
+
+### Korean food reference data
+
+The reference dataset is separate from merchant inventory. Export the supplied MFDS workbook using `scripts/food_reference/export_xlsx.py`, then start the project's PostgreSQL and migrations (`docker compose up -d postgres && docker compose run --rm migrate`). Load the resulting CSV and its manifest with:
+
+```sh
+scripts/food_reference/load.sh infra/data/korean-food-reference.csv infra/data/korean-food-reference.manifest.json
+```
+
+The loader requires `jq` and the project's Docker Compose PostgreSQL service. It validates the CSV header, manifest, row count and unique food codes, then replaces the reference data and metadata in one transaction; re-running it is safe. Search requests wait while the replacement transaction updates the indexed table; schedule imports accordingly. PostgreSQL's `pgdata` volume retains the imported data. The dataset contains neither barcodes nor photos, prices, or stock.
