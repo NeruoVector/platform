@@ -7,7 +7,7 @@ NeuroVector 전체 스택을 한 곳에서 실행하는 슈퍼프로젝트입니
 
 | 경로 | 레포 | 스택 | 포트 |
 | --- | --- | --- | --- |
-| `frontend/` | [frontend](https://github.com/NeruoVector/frontend) | React 19 + TS + Vite → nginx | 5173 |
+| `frontend/` | [frontend](https://github.com/NeruoVector/frontend) | React 19 + TS + Vite → nginx | 5174 |
 | `backend/` | [backend](https://github.com/NeruoVector/backend) | Rust + axum | 8081 |
 | `vision/` | [vision](https://github.com/NeruoVector/vision) | Python 3.13 + uv + YOLO/FastAPI | 8082 |
 | `drone/` | [drone](https://github.com/NeruoVector/drone) | C/C++ + Conan 2 (HAL) | — |
@@ -19,7 +19,7 @@ NeuroVector 전체 스택을 한 곳에서 실행하는 슈퍼프로젝트입니
 
 ```
                     ┌──────────────┐
-   브라우저 ───────▶ │  frontend    │ :5173  (nginx, /api 프록시)
+   브라우저 ───────▶ │  frontend    │ :5174  (nginx, /api 프록시)
                     └──────┬───────┘
                            │ /api + WHEP
                     ┌──────▼───────┐        ┌──────────────┐
@@ -77,7 +77,7 @@ make up          # postgres/redis/kafka/migrate/backend/vision/frontend 기동
 make ps
 ```
 
-- 프론트엔드: http://localhost:5173 (`#dashboard` 모니터링, `#store` 스토어, `#admin` 관리자)
+- 프론트엔드: http://localhost:5174 (`#dashboard` 모니터링, `#store` 스토어, `#admin` 관리자)
 - 관리자 로그인: `#admin` → 아이디 `admin` / 비밀번호 `neurovector-admin` (`.env` 에서 변경)
 - 백엔드 API: http://localhost:8081/health
 - 백엔드 Swagger UI: http://localhost:8081/swagger-ui
@@ -173,7 +173,7 @@ cd .. && git add backend && git commit -m "chore: backend 최신 커밋 반영" 
 | `MEDIA_SRT_PORT` / `MEDIA_WEBRTC_PORT` / `MEDIA_API_PORT` | 8890 / 8889 / 9997 | MediaMTX 포트 |
 | `MEDIA_SRT_PUBLIC_HOST` | `localhost` | 드론이 사용할 SRT 공인 주소 |
 | `MEDIA_WEBRTC_ADDITIONAL_HOSTS` | `localhost` | 브라우저가 접근할 WebRTC 호스트 |
-| `BACKEND_PORT` / `VISION_PORT` / `FRONTEND_PORT` | 8081 / 8082 / 5173 | 앱 포트 |
+| `BACKEND_PORT` / `VISION_PORT` / `FRONTEND_PORT` | 8081 / 8082 / 5174 | 앱 포트 |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | `admin` / `neurovector-admin` | 관리자 세션 계정 |
 | `ADMIN_SESSION_TTL_SECONDS` | `86400` | 관리자 세션 유지 시간 |
 | `ADMIN_COOKIE_SECURE` | `false` | HTTPS 배포 시 `true` |
@@ -188,6 +188,47 @@ cd .. && git add backend && git commit -m "chore: backend 최신 커밋 반영" 
    (`vector`, `pg_trgm`, `uuid-ossp` 확장 + `neurovector` 스키마)
 2. `migrate` 서비스 — 매 기동 시 `backend/migrations/*.sql` 을 순서대로 적용
    (스크립트가 `IF NOT EXISTS` 라 반복 실행해도 안전)
+
+## 고객 OAuth 설정
+
+프로젝트 루트에서 `cp -n .env.example .env` 후 `.env`의 빈 항목을 채우세요.
+Docker Compose와 로컬 Vite 모두 루트 `.env`를 사용합니다. 로컬 백엔드는 루트 또는
+`backend/`에서 실행하면 dotenv가 루트 `.env`를 찾습니다 (`backend/.env`가 있으면 그 파일이 우선합니다).
+
+| 발급받은 값 | 루트 `.env` 변수 |
+| --- | --- |
+| Google OAuth 클라이언트 ID | `GOOGLE_CLIENT_ID` |
+| Google OAuth 클라이언트 보안 비밀번호 | `GOOGLE_CLIENT_SECRET` |
+| Google Maps JavaScript API 키 | `VITE_GOOGLE_MAPS_API_KEY` |
+| 카카오 REST API 키 | `KAKAO_CLIENT_ID` |
+| 카카오 로그인 Client Secret (활성화 필요) | `KAKAO_CLIENT_SECRET` |
+| 카카오 Admin 키 | `KAKAO_ADMIN_KEY` (보관만 하며 현재 기능에서 사용하지 않음) |
+| 네이버 Client ID | `NAVER_CLIENT_ID` |
+| 네이버 Client Secret | `NAVER_CLIENT_SECRET` |
+
+기본 로컬 설정에서는 각 개발자 콘솔에 아래 콜백을 등록하세요.
+
+- Google: `http://localhost:5174/api/v1/auth/google/callback`
+- Kakao: `http://localhost:5174/api/v1/auth/kakao/callback`
+- Naver: `http://localhost:5174/api/v1/auth/naver/callback`
+
+Google OAuth의 승인된 JavaScript 원본과 카카오 웹 플랫폼 도메인은 `http://localhost:5174`입니다.
+Google Maps 키에는 Maps JavaScript API를 활성화하고 HTTP 리퍼러를 `http://localhost:5174/*`로 제한하세요.
+`VITE_` 변수는 브라우저에 공개되므로 Client Secret과 Admin 키에는 이 접두사를 붙이지 마세요.
+
+입력 후 `docker compose config --quiet`로 구성을 검증하고
+`docker compose up -d --build backend frontend`로 적용하세요. 지도 키는 빌드 시 반영됩니다.
+로컬 Vite는 재시작해야 합니다. 서버 실행 후
+`curl -fsS http://localhost:5174/api/v1/auth/providers`에서 설정한 공급자가 나오는지 확인하고,
+스토어에서 각 로그인과 지도 표시를 확인하세요. 실제 계정 로그인/동의가 끝나야 OAuth 키와 콜백을 최종 검증할 수 있습니다.
+
+고객 로그인은 Google, Kakao, Naver OAuth 를 사용합니다. `.env.example` 에서 provider 별
+client ID/secret 과 `AUTH_PUBLIC_ORIGIN` 을 설정한 뒤, 각 provider 콘솔에 다음 callback URL 을
+등록하세요: `{AUTH_PUBLIC_ORIGIN}/api/v1/auth/{google|kakao|naver}/callback`. `AUTH_PUBLIC_ORIGIN` 은
+브라우저가 사용하는 WEB origin 입니다 (`http://localhost:5174` 기본값); 개발 proxy 와 배포 reverse proxy 가
+`/api/v1` 을 backend 로 전달합니다. HTTPS 배포는
+`AUTH_FRONTEND_ORIGIN` 에 UI origin 을 지정하고 `AUTH_COOKIE_SECURE=true` 로 설정합니다. Google Maps 브라우저 키는 선택 사항이며
+`VITE_GOOGLE_MAPS_API_KEY` build argument 로 전달됩니다.
 
 볼륨이 이미 있는데 확장이 없다면:
 

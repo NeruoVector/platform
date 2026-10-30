@@ -201,7 +201,16 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-neurovector-admin}
       ADMIN_SESSION_TTL_SECONDS: ${ADMIN_SESSION_TTL_SECONDS:-86400}
       ADMIN_COOKIE_SECURE: ${ADMIN_COOKIE_SECURE:-false}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081,http://127.0.0.1:8081}
+      AUTH_PUBLIC_ORIGIN: ${AUTH_PUBLIC_ORIGIN:-http://localhost:${FRONTEND_PORT:-5174}}
+      AUTH_FRONTEND_ORIGIN: ${AUTH_FRONTEND_ORIGIN:-http://localhost:${FRONTEND_PORT:-5174}}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID:-}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-}
+      NAVER_CLIENT_ID: ${NAVER_CLIENT_ID:-}
+      NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5174,http://127.0.0.1:5174}
       # compose 네트워크에서는 INTERNAL 리스너(29092)를 사용해야 합니다.
       KAFKA_BROKERS: kafka:29092
       KAFKA_TOPIC_EVENTS: ${KAFKA_TOPIC_EVENTS:-neurovector.events}
@@ -267,6 +276,7 @@ services:
       args:
         # 빈 값 → 같은 오리진(/api) 요청을 nginx 가 backend 로 프록시
         VITE_API_BASE_URL: ""
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
     image: neurovector-frontend:${IMAGE_TAG:-local}
     container_name: nv-frontend
     restart: unless-stopped
@@ -274,7 +284,7 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "${FRONTEND_PORT:-5173}:80"
+      - "${FRONTEND_PORT:-5174}:80"
 
 volumes:
   pgdata:
