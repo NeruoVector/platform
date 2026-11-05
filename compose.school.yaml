@@ -1,0 +1,90 @@
+services:
+  sim:
+    network_mode: !reset null
+    ipc: private
+    shm_size: 512m
+    ports:
+      - "127.0.0.1:16083:6083"
+    cpus: 6
+    mem_limit: 4g
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    environment:
+      ROS_DOMAIN_ID: "73"
+      PX4_PARAM_COM_RC_IN_MODE: "4"
+      PX4_PARAM_COM_RCL_EXCEPT: "4"
+      PX4_PARAM_SDLOG_BACKEND: "0"
+      PX4_PARAM_NAV_DLL_ACT: "0"
+      PX4_PARAM_MPC_XY_VEL_MAX: "1"
+      PX4_PARAM_MPC_XY_CRUISE: "1"
+      PX4_PARAM_MPC_ACC_HOR: "1"
+      PX4_PARAM_MPC_Z_VEL_MAX_UP: "1"
+      PX4_PARAM_MPC_Z_VEL_MAX_DN: "0.7"
+      NV_SCHOOL_SCENE: "1"
+      NV_SCHOOL_SCRIPTED_DEMO: "0"
+      PX4_GZ_WORLD: school
+      HEADLESS: "1"
+      LIBGL_ALWAYS_SOFTWARE: "0"
+      NV_SCHOOL_CAMERA_FPS: "15.0"
+      DISPLAY: ":99"
+      GZ_PARTITION: neurovector-school
+    volumes:
+      - ./runtime/school:/runtime
+      - ./runtime/school-x11:/tmp/.X11-unix
+      - ./runtime/school-logs:/root/.local/share/px4/rootfs/fs/log
+    command: ["bash", "/scripts/run-school-live.sh"]
+  frontend:
+    build:
+      args:
+        VITE_DEFAULT_DRONE_ID: school-drone-001
+    depends_on:
+      sim:
+        condition: service_started
+    ports: !override
+      - "127.0.0.1:18083:80"
+    volumes:
+      - ./infra/school-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./runtime/webrtc-config.json:/etc/nginx/webrtc-config.json:ro
+      - ./runtime/school:/usr/share/nginx/html/simulation/live:ro
+      - ./runtime/monitoring-dist:/usr/share/nginx/html/monitor:ro
+      - ./sim/models/environments/school-demo/meshes/school_map_colored.dae:/usr/share/nginx/html/simulation/assets/school_map.dae:ro
+      - ./sim/fixtures/school.json:/usr/share/nginx/html/simulation/assets/school.json:ro
+  backend:
+    environment:
+      MEDIA_SRT_PUBLIC_HOST: "100.86.108.30"
+      SCHOOL_SIM_ENABLED: "1"
+  mediamtx:
+    environment:
+      MTX_WEBRTCADDITIONALHOSTS: "172.30.1.61,100.86.108.30"
+    networks:
+      default: {}
+      school-media:
+        ipv4_address: 172.28.245.2
+    ports: !override
+      - "100.86.108.30:8890:8890/udp"
+      - "0.0.0.0:8189:8189/udp"
+  school-turn:
+    image: coturn/coturn:4.9.0-r0
+    restart: unless-stopped
+    command: ["-c", "/etc/coturn/turnserver.conf"]
+    ports:
+      - "127.0.0.1:13479:3478/tcp"
+    volumes:
+      - ./runtime/school-turn.conf:/etc/coturn/turnserver.conf:ro
+    networks:
+      school-media:
+        ipv4_address: 172.28.245.3
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+networks:
+  school-media:
+    ipam:
+      config:
+        - subnet: 172.28.245.0/28

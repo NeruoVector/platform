@@ -1,0 +1,13 @@
+[Unit]
+Description=Public TLS ingress for the school WebRTC TURN relay
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker run --rm --network host --volume /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock --volume /usr/bin/tailscale:/usr/local/bin/tailscale:ro alpine:3.23 tailscale funnel --bg --tls-terminated-tcp=10000 tcp://127.0.0.1:13479
+RemainAfterExit=yes
+TimeoutStartSec=45
+Restart=on-failure
+RestartSec=30
+[Install]
+WantedBy=default.target

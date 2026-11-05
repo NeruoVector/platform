@@ -1,0 +1,22 @@
+[Unit]
+Description=School obstacle model inference API
+After=network-online.target
+[Service]
+WorkingDirectory=/home/helloworld0822/coding/platform-damselfish/vision
+Environment="PYTHONPATH=/home/helloworld0822/coding/platform-damselfish/portable_global22 copy"
+Environment=NEUROVECTOR_MODEL_PATH=/home/helloworld0822/coding/platform-damselfish/school_obstacles_best.pt
+Environment=NEUROVECTOR_SECONDARY_MODEL_PATH=/home/helloworld0822/coding/platform-damselfish/vision/models/yolo26n.pt
+Environment=NEUROVECTOR_FACE_ENABLED=false
+Environment=NEUROVECTOR_DEPTH_ENABLED=false
+Environment=NEUROVECTOR_BODY_PARTS_ENABLED=false
+Environment=NEUROVECTOR_DEVICE=cpu
+Environment=NEUROVECTOR_DRONE_ID=school-drone-001
+Environment=NEUROVECTOR_BACKEND_BASE_URL=http://127.0.0.1:18081
+Environment=OMP_NUM_THREADS=2
+Environment=MKL_NUM_THREADS=2
+Environment=YOLO_AUTOINSTALL=false
+ExecStart=/home/helloworld0822/coding/platform-damselfish/vision/.venv/bin/uvicorn neurovector_vision.api:app --host 127.0.0.1 --port 18082
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=default.target

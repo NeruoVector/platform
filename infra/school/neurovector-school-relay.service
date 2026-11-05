@@ -1,0 +1,11 @@
+[Unit]
+Description=Gazebo camera inference and backend telemetry relay
+After=neurovector-vision.service
+Requires=neurovector-vision.service
+[Service]
+WorkingDirectory=/home/helloworld0822/coding/platform-damselfish
+ExecStart=/home/helloworld0822/coding/platform-damselfish/vision/.venv/bin/python sim/scripts/school-vision-relay.py
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=default.target

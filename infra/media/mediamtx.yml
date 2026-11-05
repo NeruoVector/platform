@@ -50,8 +50,8 @@ pathDefaults:
   recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
   recordFormat: fmp4
   recordPartDuration: 1s
-  recordSegmentDuration: 10m
-  recordDeleteAfter: 7d
+  recordSegmentDuration: 1m
+  recordDeleteAfter: 6h
   overridePublisher: true
 
 paths:

@@ -1,0 +1,45 @@
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [frontend, backend, python]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        if: matrix.suite == 'frontend'
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --prefix frontend
+        if: matrix.suite == 'frontend'
+      - uses: astral-sh/setup-uv@v6
+        if: matrix.suite == 'python'
+        with:
+          enable-cache: true
+      - run: uv sync --project vision --locked --group dev --python 3.14
+        if: matrix.suite == 'python'
+      - name: Restore pinned school visual assets
+        if: matrix.suite == 'python'
+        run: |
+          git -C sim lfs install --local
+          git -C sim lfs pull --include="models/drones/x500_base/meshes/drone.stl,models/environments/school-demo/meshes/school_map.stl,models/environments/school-demo/meshes/school_map_colored.dae" --exclude=""
+          python3 sim/scripts/hydrate-school-assets.py
+      - name: Run shared checks
+        run: infra/ci/check.sh '${{ matrix.suite }}'

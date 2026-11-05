@@ -221,6 +221,10 @@ Compose v2.20 미만입니다. `docker compose version` 확인 후 업그레이�
 기본 비밀번호(`neurovector`, `neurovector-admin`)를 교체하고, `ADMIN_COOKIE_SECURE=true`
 를 설정한 뒤 인프라 포트를 외부에 노출하지 마세요.
 
+## 학교 모델 / 실시간 시뮬레이션 배포
+
+실제 모델·Gazebo/PX4·SRT·WebRTC 연결과 검증 결과는 [학교 실시간 배포 안내](docs/school-live-deployment.md)에 있습니다.
+
 ## 라이선스
 
 각 서브모듈은 자체 LICENSE 를 따릅니다 (MIT).
