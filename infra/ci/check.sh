@@ -5,7 +5,8 @@ cd "$ROOT"
 case "${1:-all}" in
   frontend) (cd frontend && npm test && npm run build) ;;
   backend)
-    scratch=$(mktemp -d)
+    mkdir -p "$ROOT/backend/.cache"
+    scratch=$(mktemp -d "$ROOT/backend/.cache/ci.XXXXXX")
     trap 'rm -rf "$scratch"' EXIT
     # Reuse the production dependency/build layers, without modifying its Dockerfile.
     sed '/^FROM .* AS runtime/,$d' backend/Dockerfile > "$scratch/Dockerfile"
