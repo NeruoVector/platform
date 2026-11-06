@@ -6,9 +6,21 @@ sandbox=$(mktemp -d /tmp/neurovector-ci-test.XXXXXX)
 trap 'rm -r "$sandbox"' EXIT
 mkdir -p "$sandbox/infra/ci" "$sandbox/bin"
 cp "$ROOT/infra/ci/run.sh" "$sandbox/infra/ci/"
-for name in check.sh school-idle.sh check-proxy.sh smoke-school.sh; do
+for name in check.sh check-space.sh school-idle.sh check-proxy.sh smoke-school.sh; do
   printf '#!/bin/bash\nexit 0\n' > "$sandbox/infra/ci/$name"
 done
+cat > "$sandbox/infra/ci/check-space.sh" <<'SPACE'
+#!/bin/bash
+set -euo pipefail
+if [[ $MOCK_MODE == low_disk ]]; then exit 77; fi
+if [[ $MOCK_MODE == low_disk_after_checks ]]; then
+  count=0
+  if [[ -f $CI_STATE_DIR/space.calls ]]; then read -r count < "$CI_STATE_DIR/space.calls"; fi
+  count=$((count + 1))
+  printf '%s\n' "$count" > "$CI_STATE_DIR/space.calls"
+  if (( count > 1 )); then exit 77; fi
+fi
+SPACE
 cat > "$sandbox/infra/ci/smoke-school.sh" <<'SMOKE'
 #!/bin/bash
 printf "smoke\n" >> "$CI_STATE_DIR/hooks.log"
@@ -63,9 +75,13 @@ case "$*" in
 esac
 MOCK
 chmod +x "$sandbox/infra/ci/"*.sh "$sandbox/bin/docker"
-for scenario in migration_failed rolled_back rollback_failed deployed reload_failed smoke_failed first_deployed first_smoke_failed; do
+for scenario in low_disk low_disk_after_checks migration_failed rolled_back rollback_failed deployed reload_failed smoke_failed first_deployed first_smoke_failed; do
   expected=$scenario
-  case "$scenario" in reload_failed|smoke_failed|first_smoke_failed) expected=rolled_back ;; first_deployed) expected=deployed ;; esac
+  case "$scenario" in
+    low_disk|low_disk_after_checks) expected=deferred ;;
+    reload_failed|smoke_failed|first_smoke_failed) expected=rolled_back ;;
+    first_deployed) expected=deployed ;;
+  esac
   mkdir -p "$sandbox/$scenario"
   code=0
   PATH="$sandbox/bin:$PATH" CI_STATE_DIR="$sandbox/$scenario" MOCK_MODE="$scenario" \
@@ -76,6 +92,12 @@ for scenario in migration_failed rolled_back rollback_failed deployed reload_fai
   result="$sandbox/$scenario/result.json"
   calls="$sandbox/$scenario/docker.log"
   grep -Eq '"status":"'"$expected"'"' "$result"
+  if [[ $expected == deferred ]]; then
+    test "$code" = 77
+    test ! -e "$calls"
+    echo "CD mock: $scenario -> deferred before Docker passed"
+    continue
+  fi
   if [[ "$expected" == deployed ]]; then test "$code" = 0; else test "$code" != 0; fi
   if [[ "$expected" == migration_failed ]]; then
     ! grep -Eq ' up -d ' "$calls"

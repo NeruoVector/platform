@@ -6,6 +6,7 @@ case "${1:-all}" in
   frontend) (cd frontend && npm test && npm run build) ;;
   dashboard) (cd nv-dash && npm test --if-present && npm run lint && npm run build -- --base=/nv-dash/) ;;
   backend)
+    "$ROOT/infra/ci/check-space.sh"
     mkdir -p "$ROOT/backend/.cache"
     scratch=$(mktemp -d "$ROOT/backend/.cache/ci.XXXXXX")
     trap 'rm -rf "$scratch"' EXIT
@@ -29,6 +30,7 @@ COMPOSE
     docker compose -p neurovector-ci -f "$scratch/compose.yaml" build tests
     ;;
   python)
+    "$ROOT/infra/ci/test-space.sh"
     "$ROOT/infra/ci/test-deploy.sh"
     "$ROOT/infra/ci/test-smoke.sh"
     PYTHON=${CI_PYTHON:-"$ROOT/vision/.venv/bin/python"}

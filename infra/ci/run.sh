@@ -20,6 +20,13 @@ finish() {
 }
 trap finish EXIT
 exec > >(tee -a "$log") 2>&1
+check_space() {
+  local code=0
+  "$ROOT/infra/ci/check-space.sh" || code=$?
+  if (( code == 77 )); then status=deferred; fi
+  return "$code"
+}
+check_space
 infra/ci/check.sh
 if [[ $(infra/ci/source-digest.sh) != "$before" ]]; then
   status=stale
@@ -38,6 +45,7 @@ if [[ "$mode" == deploy ]]; then
     echo "Deployment deferred: flight is not confirmed idle."
     exit 77
   fi
+  check_space
   # Deliberately scoped to app services: never restart the flight simulator.
   compose=(docker compose --profile sim -f compose.yaml -f "$HOME/.config/neurovector/compose.yaml" -f compose.school.yaml)
   "${compose[@]}" config --quiet
