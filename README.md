@@ -8,6 +8,7 @@ NeuroVector 전체 스택을 한 곳에서 실행하는 슈퍼프로젝트입니
 | 경로 | 레포 | 스택 | 포트 |
 | --- | --- | --- | --- |
 | `frontend/` | [frontend](https://github.com/NeruoVector/frontend) | React 19 + TS + Vite → nginx | 5173 |
+| `nv-dash/` | [nv-dash](https://github.com/NeruoVector/nv-dash) | 관리자 React + Vite → nginx | 내부 80 (`/nv-dash/`) |
 | `backend/` | [backend](https://github.com/NeruoVector/backend) | Rust + axum | 8081 |
 | `vision/` | [vision](https://github.com/NeruoVector/vision) | Python 3.13 + uv + YOLO/FastAPI | 8082 |
 | `drone/` | [drone](https://github.com/NeruoVector/drone) | C/C++ + Conan 2 (HAL) | — |

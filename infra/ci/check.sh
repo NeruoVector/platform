@@ -4,6 +4,7 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 cd "$ROOT"
 case "${1:-all}" in
   frontend) (cd frontend && npm test && npm run build) ;;
+  dashboard) (cd nv-dash && npm test --if-present && npm run lint && npm run build -- --base=/nv-dash/) ;;
   backend)
     mkdir -p "$ROOT/backend/.cache"
     scratch=$(mktemp -d "$ROOT/backend/.cache/ci.XXXXXX")
@@ -36,8 +37,9 @@ COMPOSE
     ;;
   all)
     "$0" frontend
+    "$0" dashboard
     "$0" backend
     "$0" python
     ;;
-  *) echo "Usage: $0 [all|frontend|backend|python]" >&2; exit 2 ;;
+  *) echo "Usage: $0 [all|frontend|dashboard|backend|python]" >&2; exit 2 ;;
 esac

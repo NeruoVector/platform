@@ -12,7 +12,10 @@ done
 cat > "$sandbox/infra/ci/smoke-school.sh" <<'SMOKE'
 #!/bin/bash
 printf "smoke\n" >> "$CI_STATE_DIR/hooks.log"
-[[ "$MOCK_MODE" != smoke_failed || -f "$CI_STATE_DIR/rollback-started" ]]
+if [[ -f "$CI_STATE_DIR/rollback-started" && $MOCK_MODE == first_* ]]; then
+  [[ ${CI_SMOKE_DASHBOARD:-1} == 0 ]] || exit 1
+fi
+[[ "$MOCK_MODE" != smoke_failed && "$MOCK_MODE" != first_smoke_failed || -f "$CI_STATE_DIR/rollback-started" ]]
 SMOKE
 printf '#!/bin/bash\necho stable\n' > "$sandbox/infra/ci/source-digest.sh"
 cat > "$sandbox/bin/docker" <<'MOCK'
@@ -20,9 +23,14 @@ cat > "$sandbox/bin/docker" <<'MOCK'
 set -euo pipefail
 printf '%s\n' "$*" >> "$CI_STATE_DIR/docker.log"
 case "$*" in
-  'inspect '*) printf 'sha256:%064d\n' 1 ;;
+  'image tag '*) printf '%s %s\n' "$4" "$3" >> "$CI_STATE_DIR/tags" ;;
+  *'rm -s -f dashboard') rm -f "$CI_STATE_DIR/dashboard.image" ;;
+  'inspect '*)
+    case "$*" in *backend-container) id=1 ;; *frontend-container) id=2 ;; *dashboard-container) id=3 ;; *) exit 1 ;; esac
+    printf 'sha256:%064d\n' "$id" ;;
   *'ps -q backend') echo backend-container ;;
   *'ps -q frontend') echo frontend-container ;;
+  *'ps -q dashboard') if [[ $MOCK_MODE != first_* ]]; then echo dashboard-container; fi ;;
   *'run --rm --no-deps migrate')
     [[ "$MOCK_MODE" != migration_failed ]] ;;
   'exec nv-frontend nginx -s reload')
@@ -30,16 +38,34 @@ case "$*" in
   *' up -d '*)
     if [[ "$*" == *'rollback.'* ]]; then
       touch "$CI_STATE_DIR/rollback-started"
-      [[ "$MOCK_MODE" != rollback_failed ]]
+      [[ "$MOCK_MODE" != rollback_failed ]] || exit 1
+      override=''
+      while (( $# )); do
+        if [[ $1 == -f ]]; then shift; override=$1; fi
+        shift
+      done
+      service=''
+      while read -r key value; do
+        case "$key" in
+          backend:|frontend:|dashboard:) service=${key%:} ;;
+          image:)
+            image=$(awk -v tag="$value" '$1 == tag { print $2 }' "$CI_STATE_DIR/tags")
+            [[ -n $image ]] || exit 1
+            printf '%s\n' "$image" > "$CI_STATE_DIR/$service.image" ;;
+        esac
+      done < "$override"
     else
-      [[ "$MOCK_MODE" == deployed || "$MOCK_MODE" == reload_failed || "$MOCK_MODE" == smoke_failed ]]
+      for service in backend frontend dashboard; do
+        printf 'candidate\n' > "$CI_STATE_DIR/$service.image"
+      done
+      [[ "$MOCK_MODE" == deployed || "$MOCK_MODE" == reload_failed || "$MOCK_MODE" == smoke_failed || "$MOCK_MODE" == first_smoke_failed || "$MOCK_MODE" == first_deployed ]]
     fi ;;
 esac
 MOCK
 chmod +x "$sandbox/infra/ci/"*.sh "$sandbox/bin/docker"
-for scenario in migration_failed rolled_back rollback_failed deployed reload_failed smoke_failed; do
+for scenario in migration_failed rolled_back rollback_failed deployed reload_failed smoke_failed first_deployed first_smoke_failed; do
   expected=$scenario
-  case "$scenario" in reload_failed|smoke_failed) expected=rolled_back ;; esac
+  case "$scenario" in reload_failed|smoke_failed|first_smoke_failed) expected=rolled_back ;; first_deployed) expected=deployed ;; esac
   mkdir -p "$sandbox/$scenario"
   code=0
   PATH="$sandbox/bin:$PATH" CI_STATE_DIR="$sandbox/$scenario" MOCK_MODE="$scenario" \
@@ -61,6 +87,28 @@ for scenario in migration_failed rolled_back rollback_failed deployed reload_fai
       grep -Eq 'rollback.*--force-recreate.*backend frontend' "$calls"
       grep -Eq 'image: neurovector-ci-backend-rollback:' "$sandbox/$scenario/"rollback.*/compose.yaml
       grep -Eq 'image: neurovector-ci-frontend-rollback:' "$sandbox/$scenario/"rollback.*/compose.yaml
+      for entry in backend:1 frontend:2 dashboard:3; do
+        service=${entry%:*}; id=${entry#*:}
+        if [[ $scenario == first_* && $service == dashboard ]]; then continue; fi
+        image=$(printf 'sha256:%064d' "$id")
+        grep -F "image tag $image neurovector-ci-$service-rollback:" "$calls" > /dev/null
+      done
+      if [[ $expected == rolled_back ]]; then
+        for entry in backend:1 frontend:2 dashboard:3; do
+          service=${entry%:*}; id=${entry#*:}
+          if [[ $scenario == first_* && $service == dashboard ]]; then
+            test ! -e "$sandbox/$scenario/dashboard.image"
+          else
+            test "$(cat "$sandbox/$scenario/$service.image")" = "$(printf 'sha256:%064d' "$id")"
+          fi
+        done
+      fi
+      if [[ $scenario == first_* ]]; then
+        grep -Eq 'rm -s -f dashboard$' "$calls"
+        ! grep -Eq 'rollback.*--force-recreate.*dashboard' "$calls"
+      else
+        grep -Eq 'rollback.*--force-recreate.*backend frontend dashboard$' "$calls"
+      fi
     fi
   fi
   ! grep -Eq ' (down|restart|sim)( |$)|--volumes' "$calls"

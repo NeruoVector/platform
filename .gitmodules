@@ -13,3 +13,6 @@
 [submodule "sim"]
 	path = sim
 	url = https://github.com/NeruoVector/sim.git
+[submodule "nv-dash"]
+	path = nv-dash
+	url = https://github.com/NeruoVector/nv-dash.git

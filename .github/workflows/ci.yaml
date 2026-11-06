@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [frontend, backend, python]
+        suite: [frontend, dashboard, backend, python]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,6 +29,14 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci --prefix frontend
         if: matrix.suite == 'frontend'
+      - uses: actions/setup-node@v4
+        if: matrix.suite == 'dashboard'
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: nv-dash/package-lock.json
+      - run: npm ci --prefix nv-dash
+        if: matrix.suite == 'dashboard'
       - uses: astral-sh/setup-uv@v6
         if: matrix.suite == 'python'
         with:

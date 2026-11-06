@@ -7,10 +7,52 @@ base=${CI_SMOKE_BASE_URL:-http://127.0.0.1:18083}
 work=$(mktemp -d)
 trap 'rm -r "$work"' EXIT
 fetch() {
-  curl --silent --fail --location --max-redirs 2 --connect-timeout 2 --max-time 5 \
+  curl --silent --fail --compressed --location --max-redirs 2 --connect-timeout 2 --max-time 5 \
     "$base$1" --output "$work/$2"
 }
+dashboard_probe() {
+  [[ ${CI_SMOKE_DASHBOARD:-1} == 0 ]] && return 0
+  fetch /nv-dash/ dashboard || return 1
+  "$PYTHON" - "$work" <<'PYASSETS'
+import sys
+from html.parser import HTMLParser
+from pathlib import Path
+
+class Assets(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.paths = set()
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        path = attrs.get("src" if tag == "script" else "href", "")
+        if tag in ("script", "link") and path.startswith("/nv-dash/assets/") and path.endswith((".js", ".css")):
+            self.paths.add(path)
+
+root = Path(sys.argv[1])
+parser = Assets()
+parser.feed((root / "dashboard").read_text())
+if not any(path.endswith(".js") for path in parser.paths) or not any(path.endswith(".css") for path in parser.paths):
+    sys.exit(1)
+(root / "assets").write_text("\n".join(sorted(parser.paths)) + "\n")
+PYASSETS
+  [[ $? == 0 ]] || return 1
+  while IFS= read -r asset; do
+    content_type=$(curl --silent --fail --compressed --location --max-redirs 2 --connect-timeout 2 --max-time 5 \
+      "$base$asset" --output "$work/asset" --write-out '%{content_type}') || return 1
+    case "$asset:$content_type" in
+      *.js:*javascript*|*.css:text/css*) ;;
+      *) return 1 ;;
+    esac
+    [[ -s "$work/asset" ]] || return 1
+    if LC_ALL=C grep -iqE '<!doctype html|<html' "$work/asset"; then return 1; fi
+  done < "$work/assets"
+  missing_status=$(curl --silent --compressed --connect-timeout 2 --max-time 5 \
+    "$base/nv-dash/assets/ci-missing-asset.js" --output "$work/missing" --write-out '%{http_code}') || return 1
+  [[ "$missing_status" == 404 ]]
+}
 probe() {
+  dashboard_probe &&
   fetch /healthz health && [[ $(cat "$work/health") == ok ]] &&
   fetch /api-docs/openapi.json openapi &&
   fetch /api/v1/reviews reviews &&

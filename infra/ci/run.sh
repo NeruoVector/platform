@@ -48,12 +48,20 @@ if [[ "$mode" == deploy ]]; then
   rollback_dir=$(mktemp -d "$STATE/rollback.XXXXXX")
   rollback_file="$rollback_dir/compose.yaml"
   printf 'services:\n' > "$rollback_file"
-  for service in backend frontend; do
+  services=(backend frontend dashboard)
+  rollback_services=()
+  dashboard_existed=1
+  for service in "${services[@]}"; do
     container=$("${compose[@]}" ps -q "$service")
+    if [[ -z "$container" && "$service" == dashboard ]]; then
+      dashboard_existed=0
+      continue
+    fi
     if [[ -z "$container" ]]; then
       echo "Cannot prepare rollback: $service has no existing container."
       exit 1
     fi
+    rollback_services+=("$service")
     image=$(docker inspect --format '{{.Image}}' "$container")
     if [[ ! "$image" =~ ^sha256:[a-f0-9]{64}$ ]]; then
       echo "Cannot prepare rollback: invalid image ID for $service."
@@ -63,7 +71,7 @@ if [[ "$mode" == deploy ]]; then
     docker image tag "$image" "$tag"
     printf '  %s:\n    image: %s\n' "$service" "$tag" >> "$rollback_file"
   done
-  "${compose[@]}" build backend frontend
+  "${compose[@]}" build "${services[@]}"
   if [[ $(infra/ci/source-digest.sh) != "$before" ]]; then
     status=stale
     echo 'Source changed during image build; deployment refused.'
@@ -90,18 +98,21 @@ if [[ "$mode" == deploy ]]; then
     echo 'Flight is no longer idle after migration; app replacement deferred.'
     exit 77
   fi
-  if "${compose[@]}" up -d --no-deps --no-build --pull never --wait --wait-timeout 90 backend frontend \
+  if "${compose[@]}" up -d --no-deps --no-build --pull never --wait --wait-timeout 90 "${services[@]}" \
       && docker exec nv-frontend nginx -s reload \
       && "$CI_DEPLOY_PROXY_CHECK" \
       && "$CI_DEPLOY_SMOKE_CHECK"; then
     status=deployed
   else
     echo "App health validation failed; restoring images from $rollback_file"
+    if (( ! dashboard_existed )); then
+      "${compose[@]}" rm -s -f dashboard || { status=rollback_failed; exit 1; }
+    fi
     if "${compose[@]}" -f "$rollback_file" up -d --no-deps --no-build --pull never \
-        --force-recreate --wait --wait-timeout 90 backend frontend \
+        --force-recreate --wait --wait-timeout 90 "${rollback_services[@]}" \
         && docker exec nv-frontend nginx -s reload \
       && "$CI_DEPLOY_PROXY_CHECK" \
-      && "$CI_DEPLOY_SMOKE_CHECK"; then
+      && CI_SMOKE_DASHBOARD="$dashboard_existed" "$CI_DEPLOY_SMOKE_CHECK"; then
       status=rolled_back
       echo 'Prior app images restored. Database migrations are preserved.'
     else

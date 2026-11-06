@@ -34,6 +34,7 @@ services:
       DISPLAY: ":99"
       GZ_PARTITION: neurovector-school
     volumes:
+      - ./sim/docker/entrypoint.sh:/usr/local/bin/nv-entrypoint.sh:ro
       - ./runtime/school:/runtime
       - ./runtime/school-x11:/tmp/.X11-unix
       - ./runtime/school-logs:/root/.local/share/px4/rootfs/fs/log
@@ -42,6 +43,7 @@ services:
     build:
       args:
         VITE_DEFAULT_DRONE_ID: school-drone-001
+        VITE_GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     depends_on:
       sim:
         condition: service_started
@@ -53,11 +55,17 @@ services:
       - ./runtime/school:/usr/share/nginx/html/simulation/live:ro
       - ./runtime/monitoring-dist:/usr/share/nginx/html/monitor:ro
       - ./sim/models/environments/school-demo/meshes/school_map_colored.dae:/usr/share/nginx/html/simulation/assets/school_map.dae:ro
+      - ./sim/models/environments/school-demo/meshes/school_facade.png:/usr/share/nginx/html/simulation/assets/school_facade.png:ro
       - ./sim/fixtures/school.json:/usr/share/nginx/html/simulation/assets/school.json:ro
   backend:
     environment:
       MEDIA_SRT_PUBLIC_HOST: "100.86.108.30"
       SCHOOL_SIM_ENABLED: "1"
+      SCHOOL_SIM_STATE_FILE: "/school-runtime/state.json"
+      INVENTORY_IMAGES_DIR: "/product-images"
+    volumes:
+      - ./runtime/school:/school-runtime:ro
+      - ./runtime/product-images:/product-images
   mediamtx:
     environment:
       MTX_WEBRTCADDITIONALHOSTS: "172.30.1.61,100.86.108.30"

@@ -201,6 +201,17 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-neurovector-admin}
       ADMIN_SESSION_TTL_SECONDS: ${ADMIN_SESSION_TTL_SECONDS:-86400}
       ADMIN_COOKIE_SECURE: ${ADMIN_COOKIE_SECURE:-false}
+      OAUTH_FRONTEND_URL: ${OAUTH_FRONTEND_URL:-http://localhost:5173}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID:-}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET:-}
+      KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI:-}
+      NAVER_CLIENT_ID: ${NAVER_CLIENT_ID:-}
+      NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET:-}
+      NAVER_REDIRECT_URI: ${NAVER_REDIRECT_URI:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      CARD_METADATA_KEY: ${CARD_METADATA_KEY:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081,http://127.0.0.1:8081}
       # compose 네트워크에서는 INTERNAL 리스너(29092)를 사용해야 합니다.
       KAFKA_BROKERS: kafka:29092
@@ -256,6 +267,18 @@ services:
       NEUROVECTOR_DRONE_ID: ${DRONE_ID:-drone-001}
     ports:
       - "${VISION_PORT:-8082}:8082"
+
+  dashboard:
+    build:
+      context: ./nv-dash
+    image: neurovector-dashboard:${IMAGE_TAG:-local}
+    container_name: nv-dashboard
+    restart: unless-stopped
+    mem_limit: 256m
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     build:
