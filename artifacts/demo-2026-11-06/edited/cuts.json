@@ -1,0 +1,319 @@
+{
+  "duration": 70,
+  "width": 1920,
+  "height": 1080,
+  "fps": 25,
+  "cuts": [
+    {
+      "id": "intro",
+      "seconds": 3,
+      "section": "서비스 데모",
+      "heading": "교내 배달",
+      "cue": "주문부터 드론 모니터링까지, 실제 서비스 화면으로 살펴봅니다.",
+      "at": 0,
+      "end": 3,
+      "kind": "card",
+      "crop": {
+        "x": 370,
+        "y": 140,
+        "w": 1180,
+        "h": 940,
+        "scale": 0.8297872340425532,
+        "left": 837,
+        "top": 150
+      }
+    },
+    {
+      "id": "shop",
+      "seconds": 4,
+      "source": "customer.webm",
+      "start": 5.9,
+      "section": "사용자 앱",
+      "heading": "매점 상품\n둘러보기",
+      "cue": "재고가 있는 상품을 먼저 확인하고 원하는 간식을 고릅니다.",
+      "at": 3,
+      "end": 7,
+      "kind": "customer",
+      "crop": {
+        "x": 875,
+        "y": 100,
+        "w": 430,
+        "h": 880,
+        "scale": 0.9090909090909091,
+        "left": 1210,
+        "top": 130
+      }
+    },
+    {
+      "id": "category",
+      "seconds": 4,
+      "source": "customer.webm",
+      "start": 10.7,
+      "section": "사용자 앱",
+      "heading": "카테고리로\n상품 찾기",
+      "cue": "음료·젤리 등 카테고리를 선택해 상품을 좁힙니다.",
+      "at": 7,
+      "end": 11,
+      "kind": "customer",
+      "crop": {
+        "x": 875,
+        "y": 100,
+        "w": 430,
+        "h": 880,
+        "scale": 0.9090909090909091,
+        "left": 1210,
+        "top": 130
+      }
+    },
+    {
+      "id": "options",
+      "seconds": 6,
+      "source": "customer.webm",
+      "start": 19.2,
+      "section": "사용자 앱",
+      "heading": "옵션과 수량\n선택하기",
+      "cue": "상품 상세에서 봉투 포함 여부와 주문 수량을 선택합니다.",
+      "at": 11,
+      "end": 17,
+      "kind": "customer",
+      "crop": {
+        "x": 875,
+        "y": 100,
+        "w": 430,
+        "h": 880,
+        "scale": 0.9090909090909091,
+        "left": 1210,
+        "top": 130
+      }
+    },
+    {
+      "id": "cart",
+      "seconds": 6,
+      "source": "customer.webm",
+      "start": 28.2,
+      "section": "사용자 앱",
+      "heading": "장바구니와\n요청사항 확인",
+      "cue": "담은 상품과 금액을 확인하고 매점 요청사항을 입력합니다.",
+      "at": 17,
+      "end": 23,
+      "kind": "customer",
+      "crop": {
+        "x": 875,
+        "y": 100,
+        "w": 430,
+        "h": 880,
+        "scale": 0.9090909090909091,
+        "left": 1210,
+        "top": 130
+      }
+    },
+    {
+      "id": "payment",
+      "seconds": 5,
+      "source": "customer.webm",
+      "start": 35,
+      "section": "사용자 앱",
+      "heading": "주문·결제\n내용 확인",
+      "cue": "주문 금액과 수령 장소를 확인합니다. 결제는 테스트로 처리됩니다.",
+      "at": 23,
+      "end": 28,
+      "kind": "customer",
+      "crop": {
+        "x": 875,
+        "y": 100,
+        "w": 430,
+        "h": 880,
+        "scale": 0.9090909090909091,
+        "left": 1210,
+        "top": 130
+      }
+    },
+    {
+      "id": "place",
+      "seconds": 4,
+      "source": "customer.webm",
+      "start": 42.3,
+      "section": "사용자 앱",
+      "heading": "수령 장소\n선택하기",
+      "cue": "학교 안에서 상품을 받을 장소를 선택할 수 있습니다.",
+      "at": 28,
+      "end": 32,
+      "kind": "customer",
+      "crop": {
+        "x": 875,
+        "y": 100,
+        "w": 430,
+        "h": 880,
+        "scale": 0.9090909090909091,
+        "left": 1210,
+        "top": 130
+      }
+    },
+    {
+      "id": "inventory",
+      "seconds": 4,
+      "source": "page@1dfc99b017a2a91621d3b65b4a14d18f.webm",
+      "start": 5.2,
+      "section": "관리자",
+      "heading": "상품·재고 관리",
+      "cue": "관리자는 판매 중인 상품과 가격, 재고를 확인합니다.",
+      "at": 32,
+      "end": 36,
+      "kind": "admin",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080,
+        "scale": 0.7407407407407407,
+        "left": 249,
+        "top": 130
+      }
+    },
+    {
+      "id": "product-edit",
+      "seconds": 4,
+      "source": "page@1dfc99b017a2a91621d3b65b4a14d18f.webm",
+      "start": 20.9,
+      "section": "관리자",
+      "heading": "상품 정보 편집",
+      "cue": "상품 상세에서 가격·재고·사진을 관리하는 화면을 확인합니다.",
+      "at": 36,
+      "end": 40,
+      "kind": "admin",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080,
+        "scale": 0.7407407407407407,
+        "left": 249,
+        "top": 130
+      }
+    },
+    {
+      "id": "campus",
+      "seconds": 5,
+      "source": "monitor.webm",
+      "start": 6.8,
+      "section": "드론 모니터링",
+      "heading": "학교 3D 지도",
+      "cue": "학교 3D 지도 위에서 수신된 기체 위치를 확인합니다.",
+      "at": 40,
+      "end": 45,
+      "kind": "monitor",
+      "crop": {
+        "x": 370,
+        "y": 140,
+        "w": 1180,
+        "h": 940,
+        "scale": 0.8297872340425532,
+        "left": 837,
+        "top": 150
+      }
+    },
+    {
+      "id": "topview",
+      "seconds": 5,
+      "source": "monitor.webm",
+      "start": 15.2,
+      "section": "드론 모니터링",
+      "heading": "탑뷰로 위치 확인",
+      "cue": "위에서 보기로 전환해 학교와 기체 위치를 확인합니다.",
+      "at": 45,
+      "end": 50,
+      "kind": "monitor",
+      "crop": {
+        "x": 370,
+        "y": 140,
+        "w": 1180,
+        "h": 940,
+        "scale": 0.8297872340425532,
+        "left": 837,
+        "top": 150
+      }
+    },
+    {
+      "id": "rotate",
+      "seconds": 5,
+      "source": "monitor.webm",
+      "start": 38.1,
+      "section": "드론 모니터링",
+      "heading": "지도 회전",
+      "cue": "지도를 회전하며 건물과 주변 공간을 살펴봅니다.",
+      "at": 50,
+      "end": 55,
+      "kind": "monitor",
+      "crop": {
+        "x": 370,
+        "y": 140,
+        "w": 1180,
+        "h": 940,
+        "scale": 0.8297872340425532,
+        "left": 837,
+        "top": 150
+      }
+    },
+    {
+      "id": "locate",
+      "seconds": 5,
+      "source": "monitor.webm",
+      "start": 50.1,
+      "section": "드론 모니터링",
+      "heading": "기체 위치 확대",
+      "cue": "기체 찾기로 드론이 표시된 위치를 확대합니다.",
+      "at": 55,
+      "end": 60,
+      "kind": "monitor",
+      "crop": {
+        "x": 370,
+        "y": 140,
+        "w": 1180,
+        "h": 940,
+        "scale": 0.8297872340425532,
+        "left": 837,
+        "top": 150
+      }
+    },
+    {
+      "id": "monitor",
+      "seconds": 5,
+      "source": "monitor.webm",
+      "start": 74,
+      "section": "드론 모니터링",
+      "heading": "상태·감지 이력",
+      "cue": "모니터링 화면에서 드론 상태와 장애물 감지 이력을 확인합니다.",
+      "at": 60,
+      "end": 65,
+      "kind": "monitor",
+      "crop": {
+        "x": 370,
+        "y": 140,
+        "w": 1180,
+        "h": 940,
+        "scale": 0.8297872340425532,
+        "left": 837,
+        "top": 150
+      }
+    },
+    {
+      "id": "outro",
+      "seconds": 5,
+      "section": "서비스 데모",
+      "heading": "주문 · 운영 · 모니터링",
+      "cue": "테스트 결제와 Gazebo/PX4 시뮬레이터를 사용하는 교내 배달 MVP입니다.",
+      "at": 65,
+      "end": 70,
+      "kind": "card",
+      "crop": {
+        "x": 370,
+        "y": 140,
+        "w": 1180,
+        "h": 940,
+        "scale": 0.8297872340425532,
+        "left": 837,
+        "top": 150
+      }
+    }
+  ]
+}

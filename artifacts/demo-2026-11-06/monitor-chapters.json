@@ -1,0 +1,27 @@
+[
+  {
+    "seconds": 6.345,
+    "label": "학교 전체 3D 지도 · 기체 위치",
+    "url": "http://127.0.0.1:18083/monitor/#map"
+  },
+  {
+    "seconds": 14.532,
+    "label": "학교 지도 · 탑뷰",
+    "url": "http://127.0.0.1:18083/monitor/#map"
+  },
+  {
+    "seconds": 37.991,
+    "label": "학교 지도 · 회전",
+    "url": "http://127.0.0.1:18083/monitor/#map"
+  },
+  {
+    "seconds": 49.703,
+    "label": "기체 위치 확대",
+    "url": "http://127.0.0.1:18083/monitor/#map"
+  },
+  {
+    "seconds": 73.49,
+    "label": "감지 이력 · 드론 상태",
+    "url": "http://127.0.0.1:18083/monitor/#dashboard"
+  }
+]

@@ -1,0 +1,14 @@
+NeuroVector 시연 영상 / Higgsfield 편집용
+촬영일: 2026-11-06
+Playwright로 실행 중인 실제 앱 화면을 녹화했습니다.
+MP4: H.264, 1920x1080, 30fps, 무음, 자막·음악·워터마크 없음.
+
+neurovector-demo.mp4: 전체 연결본, 2분 40.4초.
+01-customer-app.mp4: 상품 탐색, 카테고리, 상품 옵션·수량, 장바구니, 결제 안내, 수령 장소.
+02-campus-monitor.mp4: 학교 3D 지도, 탑뷰, 지도 회전, 기체 위치 확대, 감지 이력·드론 상태.
+03-admin-products.mp4: 판매 중 상품, 검색, 상품 수정 화면 열람, 드론 운용 상태.
+
+raw/customer.webm, raw/monitor.webm, raw/admin.webm: Playwright 녹화 원본.
+*-chapters.json: 각 원본 영상의 장면별 촬영 시각(초).
+MP4는 시작 로딩 구간을 각각 3초, 5초, 3초 잘랐습니다.
+실제 주문 생성·결제 실행과 관리자 상품 저장은 이번 시연에 포함하지 않았습니다.

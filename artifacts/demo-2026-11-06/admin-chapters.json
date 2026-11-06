@@ -1,0 +1,22 @@
+[
+  {
+    "seconds": 3.892,
+    "label": "관리자 · 판매 중 상품과 재고",
+    "url": "http://127.0.0.1:18083/nv-dash/products"
+  },
+  {
+    "seconds": 12.584,
+    "label": "상품명 검색",
+    "url": "http://127.0.0.1:18083/nv-dash/products"
+  },
+  {
+    "seconds": 17.947,
+    "label": "상품 상세 · 가격과 재고 · 사진 관리",
+    "url": "http://127.0.0.1:18083/nv-dash/products/8c2b8459-ba66-4c1a-b402-e76a0b00c186/edit"
+  },
+  {
+    "seconds": 25.785,
+    "label": "관리자 · 드론 운용 상태",
+    "url": "http://127.0.0.1:18083/nv-dash/drones"
+  }
+]

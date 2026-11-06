@@ -21,3 +21,14 @@
 /school_obstacles_best.pt
 __pycache__/
 *.py[cod]
+
+# Local recovery data and reproducible video intermediates
+/artifacts/recovery-*/
+/artifacts/**/*.zip
+/artifacts/**/raw/
+/artifacts/**/stills/
+/artifacts/**/assets/
+/artifacts/**/segments/
+/artifacts/**/scenes/
+/artifacts/**/qa/
+/artifacts/**/stage.html
