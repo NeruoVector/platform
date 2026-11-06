@@ -1,0 +1,15 @@
+.product-photo-manager { margin-inline: auto; }
+.product-photo-manager .panel-head { flex-wrap: wrap; }
+.product-photo-manager .field { min-inline-size: 0; max-inline-size: 100%; }
+.product-photo-manager .field,
+.product-photo-manager .button { font-size: 1rem; line-height: 1.5; }
+.product-photo-manager .button { min-block-size: 44px; min-inline-size: 44px; white-space: normal; }
+.product-photo-manager .field input,
+.product-photo-manager .field select { min-inline-size: 0; inline-size: 100%; max-inline-size: 100%; min-block-size: 44px; }
+.product-photo-manager input[type='file']::file-selector-button { min-block-size: 44px; min-inline-size: 44px; font: inherit; }
+.product-photo-manager p,
+.product-photo-manager .field span { word-break: keep-all; overflow-wrap: anywhere; }
+.product-photo-editor { display: grid; justify-items: start; min-inline-size: 0; gap: 1rem; margin-block-start: 1rem; }
+.product-photo-editor .field { inline-size: 100%; }
+.product-photo-editor img { object-fit: contain; max-inline-size: 100%; block-size: auto; }
+.product-photo-editor p { margin: 0; }

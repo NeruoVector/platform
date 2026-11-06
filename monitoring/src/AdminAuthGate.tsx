@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { AdminPage } from './AdminPage'
+import { ProductPhotoManager } from './ProductPhotoManager'
 import { apiUrl, errorMessage, readApiError } from './api'
 import type { AdminSession } from './types'
 
@@ -123,12 +124,15 @@ export function AdminAuthGate({ onOpenStore }: Props) {
 
   if (session) {
     return (
+      <>
       <AdminPage
         onOpenStore={onOpenStore}
         username={session.username}
         onLogout={() => void handleLogout()}
         onSessionExpired={handleSessionExpired}
       />
+      <ProductPhotoManager onSessionExpired={handleSessionExpired} />
+      </>
     )
   }
 
