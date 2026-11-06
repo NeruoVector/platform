@@ -1,0 +1,450 @@
+{
+  "host": {
+    "physical_cores": 8,
+    "logical_cpus": 16,
+    "ram_gib": 14.853
+  },
+  "scope": "One simulated drone, camera stream and CPU object detection; landed awaiting_receipt; no flight created; face/learned-depth models disabled",
+  "phases": {
+    "baseline": {
+      "samples": 15,
+      "services": {
+        "nv-frontend": {
+          "cpu_cores": {
+            "mean": 0.007,
+            "p95": 0.048,
+            "max": 0.048,
+            "min": 0.0
+          },
+          "memory_gib": {
+            "mean": 0.014,
+            "p95": 0.014,
+            "max": 0.014,
+            "min": 0.014
+          }
+        },
+        "nv-backend": {
+          "cpu_cores": {
+            "mean": 0.007,
+            "p95": 0.009,
+            "max": 0.009,
+            "min": 0.004
+          },
+          "memory_gib": {
+            "mean": 0.108,
+            "p95": 0.108,
+            "max": 0.108,
+            "min": 0.108
+          }
+        },
+        "nv-dashboard": {
+          "cpu_cores": {
+            "mean": 0.002,
+            "p95": 0.029,
+            "max": 0.029,
+            "min": 0.0
+          },
+          "memory_gib": {
+            "mean": 0.02,
+            "p95": 0.02,
+            "max": 0.02,
+            "min": 0.02
+          }
+        },
+        "nv-sim": {
+          "cpu_cores": {
+            "mean": 4.582,
+            "p95": 5.705,
+            "max": 5.705,
+            "min": 4.017
+          },
+          "memory_gib": {
+            "mean": 2.37,
+            "p95": 2.376,
+            "max": 2.376,
+            "min": 2.367
+          }
+        },
+        "nv-mediamtx": {
+          "cpu_cores": {
+            "mean": 0.026,
+            "p95": 0.032,
+            "max": 0.032,
+            "min": 0.022
+          },
+          "memory_gib": {
+            "mean": 0.059,
+            "p95": 0.059,
+            "max": 0.059,
+            "min": 0.059
+          }
+        },
+        "nv-postgres": {
+          "cpu_cores": {
+            "mean": 0.019,
+            "p95": 0.095,
+            "max": 0.095,
+            "min": 0.002
+          },
+          "memory_gib": {
+            "mean": 0.149,
+            "p95": 0.149,
+            "max": 0.149,
+            "min": 0.149
+          }
+        },
+        "nv-redis": {
+          "cpu_cores": {
+            "mean": 0.012,
+            "p95": 0.035,
+            "max": 0.035,
+            "min": 0.005
+          },
+          "memory_gib": {
+            "mean": 0.004,
+            "p95": 0.004,
+            "max": 0.004,
+            "min": 0.004
+          }
+        },
+        "nv-kafka": {
+          "cpu_cores": {
+            "mean": 0.32,
+            "p95": 1.986,
+            "max": 1.986,
+            "min": 0.011
+          },
+          "memory_gib": {
+            "mean": 0.69,
+            "p95": 0.737,
+            "max": 0.737,
+            "min": 0.679
+          }
+        },
+        "nv-mosquitto": {
+          "cpu_cores": {
+            "mean": 0.006,
+            "p95": 0.029,
+            "max": 0.029,
+            "min": 0.0
+          },
+          "memory_gib": {
+            "mean": 0.002,
+            "p95": 0.002,
+            "max": 0.002,
+            "min": 0.002
+          }
+        },
+        "neurovector-school-turn-1": {
+          "cpu_cores": {
+            "mean": 0.001,
+            "p95": 0.001,
+            "max": 0.001,
+            "min": 0.0
+          },
+          "memory_gib": {
+            "mean": 0.03,
+            "p95": 0.03,
+            "max": 0.03,
+            "min": 0.03
+          }
+        }
+      },
+      "project_cpu_logical_cores": {
+        "mean": 9.738,
+        "p95": 12.083,
+        "max": 12.083,
+        "min": 7.966
+      },
+      "project_memory_gib": {
+        "mean": 4.501,
+        "p95": 4.563,
+        "max": 4.563,
+        "min": 4.444
+      },
+      "host_cpu_pct": {
+        "mean": 65.02,
+        "p95": 77.6,
+        "max": 77.6,
+        "min": 57.3
+      },
+      "host_used_memory_gib": {
+        "mean": 8.075,
+        "p95": 8.142,
+        "max": 8.142,
+        "min": 8.028
+      },
+      "vision_cpu_cores": {
+        "mean": 4.757,
+        "p95": 6.893,
+        "max": 6.893,
+        "min": 3.588
+      },
+      "vision_rss_gib": {
+        "mean": 1.054,
+        "p95": 1.128,
+        "max": 1.128,
+        "min": 1.009
+      },
+      "inference_ms": {
+        "mean": 2034.027,
+        "p95": 2086.45,
+        "max": 2086.45,
+        "min": 1893.85
+      },
+      "flight_modes": [
+        "awaiting_receipt"
+      ],
+      "armed_any": false,
+      "inference_ok_all": true,
+      "max_state_age_s": 0.768
+    },
+    "api_load": {
+      "samples": 15,
+      "services": {
+        "nv-frontend": {
+          "cpu_cores": {
+            "mean": 0.006,
+            "p95": 0.03,
+            "max": 0.03,
+            "min": 0.001
+          },
+          "memory_gib": {
+            "mean": 0.014,
+            "p95": 0.014,
+            "max": 0.014,
+            "min": 0.014
+          }
+        },
+        "nv-backend": {
+          "cpu_cores": {
+            "mean": 0.015,
+            "p95": 0.05,
+            "max": 0.05,
+            "min": 0.006
+          },
+          "memory_gib": {
+            "mean": 0.108,
+            "p95": 0.109,
+            "max": 0.109,
+            "min": 0.108
+          }
+        },
+        "nv-dashboard": {
+          "cpu_cores": {
+            "mean": 0.0,
+            "p95": 0.0,
+            "max": 0.0,
+            "min": 0.0
+          },
+          "memory_gib": {
+            "mean": 0.02,
+            "p95": 0.02,
+            "max": 0.02,
+            "min": 0.02
+          }
+        },
+        "nv-sim": {
+          "cpu_cores": {
+            "mean": 4.397,
+            "p95": 5.372,
+            "max": 5.372,
+            "min": 3.875
+          },
+          "memory_gib": {
+            "mean": 2.374,
+            "p95": 2.38,
+            "max": 2.38,
+            "min": 2.371
+          }
+        },
+        "nv-mediamtx": {
+          "cpu_cores": {
+            "mean": 0.025,
+            "p95": 0.042,
+            "max": 0.042,
+            "min": 0.021
+          },
+          "memory_gib": {
+            "mean": 0.058,
+            "p95": 0.058,
+            "max": 0.058,
+            "min": 0.058
+          }
+        },
+        "nv-postgres": {
+          "cpu_cores": {
+            "mean": 0.242,
+            "p95": 0.348,
+            "max": 0.348,
+            "min": 0.087
+          },
+          "memory_gib": {
+            "mean": 0.147,
+            "p95": 0.148,
+            "max": 0.148,
+            "min": 0.145
+          }
+        },
+        "nv-redis": {
+          "cpu_cores": {
+            "mean": 0.013,
+            "p95": 0.041,
+            "max": 0.041,
+            "min": 0.006
+          },
+          "memory_gib": {
+            "mean": 0.004,
+            "p95": 0.004,
+            "max": 0.004,
+            "min": 0.004
+          }
+        },
+        "nv-kafka": {
+          "cpu_cores": {
+            "mean": 0.475,
+            "p95": 2.366,
+            "max": 2.366,
+            "min": 0.011
+          },
+          "memory_gib": {
+            "mean": 0.712,
+            "p95": 0.771,
+            "max": 0.771,
+            "min": 0.697
+          }
+        },
+        "nv-mosquitto": {
+          "cpu_cores": {
+            "mean": 0.005,
+            "p95": 0.033,
+            "max": 0.033,
+            "min": 0.0
+          },
+          "memory_gib": {
+            "mean": 0.002,
+            "p95": 0.002,
+            "max": 0.002,
+            "min": 0.002
+          }
+        },
+        "neurovector-school-turn-1": {
+          "cpu_cores": {
+            "mean": 0.001,
+            "p95": 0.001,
+            "max": 0.001,
+            "min": 0.0
+          },
+          "memory_gib": {
+            "mean": 0.03,
+            "p95": 0.03,
+            "max": 0.03,
+            "min": 0.03
+          }
+        }
+      },
+      "project_cpu_logical_cores": {
+        "mean": 10.036,
+        "p95": 11.772,
+        "max": 11.772,
+        "min": 7.828
+      },
+      "project_memory_gib": {
+        "mean": 4.5,
+        "p95": 4.586,
+        "max": 4.586,
+        "min": 4.464
+      },
+      "host_cpu_pct": {
+        "mean": 67.62,
+        "p95": 80.4,
+        "max": 80.4,
+        "min": 57.3
+      },
+      "host_used_memory_gib": {
+        "mean": 8.08,
+        "p95": 8.231,
+        "max": 8.231,
+        "min": 8.008
+      },
+      "vision_cpu_cores": {
+        "mean": 4.857,
+        "p95": 7.308,
+        "max": 7.308,
+        "min": 3.437
+      },
+      "vision_rss_gib": {
+        "mean": 1.03,
+        "p95": 1.128,
+        "max": 1.128,
+        "min": 1.009
+      },
+      "inference_ms": {
+        "mean": 2052.243,
+        "p95": 2171.84,
+        "max": 2171.84,
+        "min": 1836.5
+      },
+      "flight_modes": [
+        "awaiting_receipt"
+      ],
+      "armed_any": false,
+      "inference_ok_all": true,
+      "max_state_age_s": 0.629
+    }
+  },
+  "http": {
+    "count": 300,
+    "success_200": 300,
+    "target_rps": 10,
+    "max_workers": 4,
+    "latency_ms": {
+      "mean": 26.491,
+      "p95": 103.522,
+      "max": 124.997,
+      "min": 1.039
+    },
+    "status_codes": {
+      "200": 300
+    },
+    "by_path": {
+      "/api/v1/flights/status": {
+        "mean": 96.776,
+        "p95": 120.472,
+        "max": 124.997,
+        "min": 76.814
+      },
+      "/api/v1/inventory?limit=50": {
+        "mean": 3.101,
+        "p95": 4.889,
+        "max": 10.017,
+        "min": 1.861
+      },
+      "/api/v1/reviews?limit=20": {
+        "mean": 4.031,
+        "p95": 7.228,
+        "max": 8.667,
+        "min": 2.295
+      },
+      "/simulation/live/state.json": {
+        "mean": 2.054,
+        "p95": 5.23,
+        "max": 10.88,
+        "min": 1.039
+      }
+    }
+  },
+  "gazebo_real_time_factor": {
+    "mean": 1.015,
+    "p95": 1.078,
+    "max": 1.078,
+    "min": 1.0
+  },
+  "running_image_sizes_sum_gib": 2.353,
+  "measurement_notes": [
+    "Docker CPU% uses one logical CPU=100%; project CPU adds Docker samples and host vision process with approximate sampling-window alignment.",
+    "Docker working-set memory plus vision RSS is an estimate, not peak committed memory; 30 samples per old run, 15 samples per phase.",
+    "The initial API run included 75 requests to an obsolete /api/v1/drones path returning 404; final API statistics use a corrected 300-request run against /api/v1/flights/status.",
+    "No resource limits, services, flight state or inference settings were changed; no physical drone, outbound/return flight, multi-drone or sustained video fan-out test was performed."
+  ]
+}
